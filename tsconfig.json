@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./working",
+    "rootDir": "./",
+
+    /* Strict Type-Checking Options */
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+
+    /* Additional Checks */
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "include": [ "src/**/*.ts", "test/**/*.ts" ]
+}

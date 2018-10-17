@@ -1,0 +1,18 @@
+{
+    "test/unit/*-spec.js": {
+        "alternate": "src/{}.js",
+        "type": "unit"
+    },
+    "src/*.js": {
+        "alternate": "test/unit/{}-spec.js",
+        "type": "src"
+    },
+    "test/unit/*-spec.ts": {
+        "alternate": "src/{}.ts",
+        "type": "unit"
+    },
+    "src/*.ts": {
+        "alternate": "test/unit/{}-spec.ts",
+        "type": "src"
+    }
+}

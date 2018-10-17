@@ -1,0 +1,20 @@
+{
+  "default": {
+    "app": {
+        "logLevel": "trace",
+        "extremeLogging": false
+    }
+  },
+  "development": {
+    "app": {}
+  },
+  "test": {
+    "app": {}
+  },
+  "production": {
+    "app": {
+      "logLevel": "error",
+      "extremeLogging": true
+    }
+  }
+}

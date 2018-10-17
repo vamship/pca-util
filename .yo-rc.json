@@ -1,0 +1,21 @@
+{
+  "@vamship/generator-typescript": {
+    "_projectType": "cli",
+    "projectNamespace": "@vamship",
+    "projectName": "pca-util",
+    "projectVersion": "1.0.0",
+    "projectDescription": "Command line util to provision and configure a proxmox private cloud appliance",
+    "projectKeywords": [
+      "proxmox",
+      "private cloud appliance",
+      "kubernetes"
+    ],
+    "projectCliName": "pca",
+    "authorName": "Vamshi K Ponnapalli",
+    "authorEmail": "vamshi.ponnapalli@gmail.com",
+    "gitUsername": "vamship",
+    "gitUrl": "github.com/vamship/pca-util",
+    "gitDocumentationUrl": "https://vamship.github.io/pca-util",
+    "dockerRequired": false
+  }
+}

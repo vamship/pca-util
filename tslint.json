@@ -1,0 +1,15 @@
+{
+    "extends": [
+        "tslint:recommended",
+        "tslint-no-unused-expression-chai"
+    ],
+    "plugins": [],
+    "rules": {
+        "quotemark": [true, "single", "avoid-escape"],
+        "variable-name": [true, "ban-keywords", "allow-leading-underscore" ],
+        "trailing-comma": false,
+        "prefer-conditional-expression": false,
+        "object-literal-sort-keys": false,
+        "object-literal-key-quotes": [ true, "as-needed" ]
+    }
+}
