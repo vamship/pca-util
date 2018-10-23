@@ -17,7 +17,7 @@ import { ObjectMock, testValues as _testValues } from '@vamship/test-utils';
 export const injectSshSubTaskSuite = (
     commandCount: number,
     eatError: boolean,
-    execSubTask: (args?: object) => Promise<any>,
+    execSubTask: (args?: object, ctx?: object, task?: object) => Promise<any>,
     getSshClientMock: () => ObjectMock
 ) => {
     it('should return a promise when invoked', () => {

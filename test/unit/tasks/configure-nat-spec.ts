@@ -55,6 +55,11 @@ describe('[configure-nat task]', () => {
         const expectedTitle = 'Configure NAT';
         const subTaskList = [
             {
+                title: 'Check if NAT configuration is required',
+                commandCount: 1,
+                eatError: true
+            },
+            {
                 title: 'Add linux bridge config and NAT settings',
                 commandCount: 1,
                 eatError: false
@@ -67,10 +72,14 @@ describe('[configure-nat task]', () => {
         ];
 
         function _getSubTaskRunner(taskIndex: number) {
-            return (args: object = {}): Promise<undefined> => {
+            return (
+                args: object = {},
+                ctx: object = {},
+                task: object = {}
+            ): Promise<undefined> => {
                 _listrMock.ctor.resetHistory();
                 _getTaskDefinition(args).task();
-                return _listrMock.ctor.args[0][0][taskIndex].task();
+                return _listrMock.ctor.args[0][0][taskIndex].task(ctx, task);
             };
         }
 
@@ -110,24 +119,62 @@ describe('[configure-nat task]', () => {
         subTaskList.forEach(({ title, commandCount, eatError }, index) => {
             describe(`[sub task: ${title}]`, () => {
                 const execSubTask = _getSubTaskRunner(index);
+                const getSshClientMock = () => _sshClientMock;
 
                 injectSshSubTaskSuite(
                     commandCount,
                     eatError,
                     execSubTask,
-                    () => _sshClientMock
+                    getSshClientMock
                 );
 
                 if (index === 0) {
+                    it('should set the ctx.skipNatConfig=false if command execution fails', () => {
+                        const sshClientMock = getSshClientMock();
+                        const runMethod = sshClientMock.mocks.run;
+                        const ctx = {
+                            skipNatConfig: undefined
+                        };
+
+                        const ret = execSubTask(undefined, ctx);
+                        runMethod.resolve({
+                            commandCount,
+                            successCount: 0,
+                            failureCount: commandCount
+                        });
+
+                        return expect(ret).to.be.fulfilled.then(() => {
+                            expect(ctx.skipNatConfig).to.be.false;
+                        });
+                    });
+
+                    it('should set the ctx.skipNatConfig=true if command execution succeeds', () => {
+                        const sshClientMock = getSshClientMock();
+                        const runMethod = sshClientMock.mocks.run;
+                        const ctx = {
+                            skipNatConfig: undefined
+                        };
+
+                        const ret = execSubTask(undefined, ctx);
+                        runMethod.resolve({
+                            commandCount,
+                            successCount: commandCount,
+                            failureCount: 0
+                        });
+
+                        return expect(ret).to.be.fulfilled.then(() => {
+                            expect(ctx.skipNatConfig).to.be.true;
+                        });
+                    });
+                } else {
                     describe('[skip]', () => {
-                        function _execSkip(args: object = {}) {
+                        function _execSkip(
+                            args: object = {},
+                            ctx: object = {}
+                        ) {
                             _listrMock.ctor.resetHistory();
                             _getTaskDefinition(args).task();
-                            return _listrMock.ctor.args[0][0][index].skip();
-                        }
-
-                        function getSshClientMock() {
-                            return _sshClientMock;
+                            return _listrMock.ctor.args[0][0][index].skip(ctx);
                         }
 
                         it('should define a skip function', () => {
@@ -136,104 +183,18 @@ describe('[configure-nat task]', () => {
                             expect(skip).to.be.a('function');
                         });
 
-                        it('should return a promise when invoked', () => {
-                            const ret = _execSkip();
-
-                            expect(ret).to.be.an('object');
-                            expect(ret.then).to.be.a('function');
-                        });
-
-                        it('should initialize an ssh client with the correct parameters', () => {
-                            const sshClientMock = getSshClientMock();
-                            const host = _testValues.getString('host');
-                            const port = _testValues.getNumber(100, 22);
-                            const username = _testValues.getString('username');
-                            const privateKey = _testValues.getString(
-                                'privateKey'
-                            );
-                            const password = _testValues.getString('password');
-
-                            sshClientMock.ctor.resetHistory();
-                            expect(sshClientMock.ctor).to.not.have.been.called;
-
-                            _execSkip({
-                                host,
-                                port,
-                                username,
-                                password,
-                                privateKey
+                        it('should return false if ctx.skipNatConfig === false', () => {
+                            const ret = _execSkip(undefined, {
+                                skipNatConfig: false
                             });
-
-                            expect(sshClientMock.ctor).to.have.been.calledOnce;
-                            expect(sshClientMock.ctor).to.have.been
-                                .calledWithNew;
-                            expect(sshClientMock.ctor.args[0]).to.have.length(
-                                1
-                            );
-
-                            const clientOptions = sshClientMock.ctor.args[0][0];
-                            expect(clientOptions).to.be.an('object');
-                            expect(clientOptions.host).to.equal(host);
-                            expect(clientOptions.username).to.equal(username);
-                            expect(clientOptions.port).to.equal(port);
-                            expect(clientOptions.password).to.equal(password);
-                            expect(clientOptions.privateKey).to.equal(
-                                privateKey
-                            );
+                            expect(ret).to.be.false;
                         });
 
-                        it('should run the expected number of commands over ssh', () => {
-                            const sshClientMock = getSshClientMock();
-                            const runMethod = sshClientMock.mocks.run;
-
-                            expect(runMethod.stub).to.not.have.been.called;
-
-                            _execSkip();
-
-                            expect(runMethod.stub).to.have.been.calledOnce;
-                            expect(runMethod.stub.args[0]).to.have.length(1);
-
-                            const commands = runMethod.stub.args[0][0];
-                            expect(commands).to.be.an('array');
-                            expect(commands).to.have.length(1);
-                        });
-
-                        it('should resolve the promise with a message if command execution succeeds', () => {
-                            const sshClientMock = getSshClientMock();
-                            const runMethod = sshClientMock.mocks.run;
-
-                            const ret = _execSkip();
-                            runMethod.resolve({
-                                commandCount: 1,
-                                successCount: 1,
-                                failureCount: 0
+                        it('should return a message if ctx.skipNatConfig === true', () => {
+                            const ret = _execSkip(undefined, {
+                                skipNatConfig: true
                             });
-
-                            return expect(ret).to.be.fulfilled.then(
-                                (result) => {
-                                    expect(result).to.equal(
-                                        'Network already configured'
-                                    );
-                                }
-                            );
-                        });
-
-                        it('should resolve the promise with false if command execution fails', () => {
-                            const sshClientMock = getSshClientMock();
-                            const runMethod = sshClientMock.mocks.run;
-
-                            const ret = _execSkip();
-                            runMethod.resolve({
-                                commandCount: 1,
-                                successCount: 0,
-                                failureCount: 1
-                            });
-
-                            return expect(ret).to.be.fulfilled.then(
-                                (result) => {
-                                    expect(result).to.be.false;
-                                }
-                            );
+                            expect(ret).to.equal('NAT already configured');
                         });
                     });
                 }

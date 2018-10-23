@@ -50,29 +50,41 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
         title: 'Configure NAT',
         task: () => {
             const logger = _loggerProvider.getLogger('configure-nat');
+            function skip(ctx) {
+                if (ctx.skipNatConfig) {
+                    logger.warn(
+                        'NAT already configured. Skipping configuration'
+                    );
+                    return 'NAT already configured';
+                }
+                logger.debug('NAT configuration required');
+                return false;
+            }
 
             return new Listr([
                 {
-                    title: 'Add linux bridge config and NAT settings',
-                    skip: () => {
+                    title: 'Check if NAT configuration is required',
+                    task: (ctx, task) => {
                         const sshClient = new SshClient(hostInfo);
-                        logger.debug(
-                            'Checking if NAT configuration is required'
-                        );
                         return sshClient
                             .run(checkConfigRequiredCommands)
                             .then((results) => {
                                 logger.trace(results);
                                 if (results.failureCount > 0) {
                                     logger.debug('NAT configuration required');
-                                    return false;
+                                    ctx.skipNatConfig = false;
+                                } else {
+                                    logger.warn(
+                                        'NAT already configured. Skipping configuration'
+                                    );
+                                    ctx.skipNatConfig = true;
                                 }
-                                logger.warn(
-                                    'NAT already configured. Skipping configuration'
-                                );
-                                return 'NAT already configured';
                             });
-                    },
+                    }
+                },
+                {
+                    title: 'Add linux bridge config and NAT settings',
+                    skip,
                     task: () => {
                         logger.trace('Configure NAT');
                         const sshClient = new SshClient(hostInfo);
@@ -93,6 +105,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 },
                 {
                     title: 'Restart networking service',
+                    skip,
                     task: () => {
                         const sshClient = new SshClient(hostInfo);
                         return sshClient
