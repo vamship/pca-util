@@ -2,6 +2,7 @@
  * @module root.commands.configureHost
  */
 import Listr from 'listr';
+import { getTask as _getConfigureDhcpTask } from '../tasks/configure-dhcp';
 import { getTask as _getConfigureNatTask } from '../tasks/configure-nat';
 import { getTask as _getUpdateHostTask } from '../tasks/update-host';
 import { IRemoteHostInfo } from '../types';
@@ -56,6 +57,7 @@ export const handler = (argv) => {
 
     return new Listr([
         _getUpdateHostTask(hostInfo),
-        _getConfigureNatTask(hostInfo)
+        _getConfigureNatTask(hostInfo),
+        _getConfigureDhcpTask(hostInfo)
     ]).run();
 };

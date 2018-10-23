@@ -63,12 +63,17 @@ describe('[configure-host command]', () => {
 
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
-        ['update-host', 'configure-network'].forEach((mockName) => {
-            _taskMocks[mockName] = new ObjectMock().addMock('getTask', () => {
-                return _taskMocks[mockName].__taskDefinition;
-            });
-            _taskMocks[mockName].__taskDefinition = {};
-        });
+        ['update-host', 'configure-nat', 'configure-dhcp'].forEach(
+            (mockName) => {
+                _taskMocks[mockName] = new ObjectMock().addMock(
+                    'getTask',
+                    () => {
+                        return _taskMocks[mockName].__taskDefinition;
+                    }
+                );
+                _taskMocks[mockName].__taskDefinition = {};
+            }
+        );
 
         _commandModule.__set__('listr_1', {
             default: _listrMock.ctor
@@ -79,7 +84,11 @@ describe('[configure-host command]', () => {
         );
         _commandModule.__set__(
             'configure_nat_1',
-            _taskMocks['configure-network'].instance
+            _taskMocks['configure-nat'].instance
+        );
+        _commandModule.__set__(
+            'configure_dhcp_1',
+            _taskMocks['configure-dhcp'].instance
         );
     });
 
@@ -225,7 +234,4 @@ describe('[configure-host command]', () => {
             return expect(ret).to.be.fulfilled;
         });
     });
-
-    // _injectSshTaskSuite('update-host', 0);
-    // _injectSshTaskSuite('configure-network', 1);
 });
