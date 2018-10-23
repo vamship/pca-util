@@ -63,13 +63,13 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
     return {
         title: 'Configure DHCP',
         task: () => {
-            const logger = _loggerProvider.getLogger('configure-nat');
+            const logger = _loggerProvider.getLogger('configure-dhcp');
             function skip(ctx) {
                 if (ctx.skipDhcpConfig) {
-                    logger.warn('Skipping NAT configuration');
-                    return 'NAT already configured';
+                    logger.warn('Skipping DHCP configuration');
+                    return 'DHCP already configured';
                 }
-                logger.debug('NAT configuration required');
+                logger.debug('DHCP configuration required');
                 return false;
             }
 

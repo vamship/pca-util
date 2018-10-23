@@ -204,7 +204,7 @@ describe('[configure-dhcp task]', () => {
                             const ret = _execSkip(undefined, {
                                 skipDhcpConfig: true
                             });
-                            expect(ret).to.equal('NAT already configured');
+                            expect(ret).to.equal('DHCP already configured');
                         });
                     });
                 }
