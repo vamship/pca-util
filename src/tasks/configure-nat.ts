@@ -52,9 +52,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
             const logger = _loggerProvider.getLogger('configure-nat');
             function skip(ctx) {
                 if (ctx.skipNatConfig) {
-                    logger.warn(
-                        'NAT already configured. Skipping configuration'
-                    );
+                    logger.warn('Skipping NAT configuration');
                     return 'NAT already configured';
                 }
                 logger.debug('NAT configuration required');
@@ -74,9 +72,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     logger.debug('NAT configuration required');
                                     ctx.skipNatConfig = false;
                                 } else {
-                                    logger.warn(
-                                        'NAT already configured. Skipping configuration'
-                                    );
+                                    logger.warn('NAT already configured');
                                     ctx.skipNatConfig = true;
                                 }
                             });
