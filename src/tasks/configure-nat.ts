@@ -34,7 +34,7 @@ const restartNetworkingServiceCommands = [
 /**
  * Returns a task that can be used to configure the host network and NAT. Note
  * that this task works by writing configuration into the
- * /etc/network/interfaces file. A preliminary check is made to ensure that
+ * `/etc/network/interfaces` file. A preliminary check is made to ensure that
  * the configuration update is necessary, but the test is fairly basic - it
  * ensures that no duplicate records are written, but cannot correct existing
  * config if it is partial or incorrect.
