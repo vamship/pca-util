@@ -70,6 +70,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 {
                     title: 'Check if NAT configuration is required',
                     task: (ctx, task) => {
+                        logger.trace( 'Check if NAT configuration is required');
                         const sshClient = new SshClient(hostInfo);
                         return sshClient
                             .run(checkConfigRequiredCommands)
