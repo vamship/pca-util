@@ -55,12 +55,22 @@ describe('[setup-template-environment task]', () => {
         const expectedTitle = 'Setup template build environment';
         const subTaskList = [
             {
+                title: 'Check if template image download is required',
+                commandCount: 1,
+                eatError: true
+            },
+            {
+                title: 'Check if temporary SSH keys have to be created',
+                commandCount: 1,
+                eatError: true
+            },
+            {
                 title: 'Download template image',
                 commandCount: 1,
                 eatError: false
             },
             {
-                title: 'Create temporary ssh keys',
+                title: 'Create temporary SSH keys',
                 commandCount: 2,
                 eatError: false
             }
@@ -111,6 +121,12 @@ describe('[setup-template-environment task]', () => {
             });
         });
 
+        const skipFlags = [
+            'skipTemplateImageDownload',
+            'skipTemporaryKeyCreation',
+            'skipTemplateImageDownload',
+            'skipTemporaryKeyCreation'
+        ];
         subTaskList.forEach(({ title, commandCount, eatError }, index) => {
             describe(`[sub task: ${title}]`, () => {
                 const execSubTask = _getSubTaskRunner(index);
@@ -122,6 +138,86 @@ describe('[setup-template-environment task]', () => {
                     execSubTask,
                     getSshClientMock
                 );
+
+                const skipFlag = skipFlags[index];
+                if (index < 2) {
+                    it(`should set the ctx.${skipFlag}=false if command execution fails`, () => {
+                        const sshClientMock = getSshClientMock();
+                        const runMethod = sshClientMock.mocks.run;
+                        const ctx = {
+                            [skipFlag]: undefined
+                        };
+
+                        const ret = execSubTask(undefined, ctx);
+                        runMethod.resolve({
+                            commandCount,
+                            successCount: 0,
+                            failureCount: commandCount
+                        });
+
+                        return expect(ret).to.be.fulfilled.then(() => {
+                            expect(ctx[skipFlag]).to.be.false;
+                        });
+                    });
+
+                    it(`should set the ctx.${skipFlag}=true if command execution succeeds`, () => {
+                        const sshClientMock = getSshClientMock();
+                        const runMethod = sshClientMock.mocks.run;
+                        const ctx = {
+                            [skipFlag]: undefined
+                        };
+
+                        const ret = execSubTask(undefined, ctx);
+                        runMethod.resolve({
+                            commandCount,
+                            successCount: commandCount,
+                            failureCount: 0
+                        });
+
+                        return expect(ret).to.be.fulfilled.then(() => {
+                            expect(ctx[skipFlag]).to.be.true;
+                        });
+                    });
+                } else {
+                    describe('[skip]', () => {
+                        function _execSkip(
+                            args: object = {},
+                            ctx: object = {}
+                        ) {
+                            _listrMock.ctor.resetHistory();
+                            _getTaskDefinition(args).task();
+                            return _listrMock.ctor.args[0][0][index].skip(ctx);
+                        }
+
+                        it('should define a skip function', () => {
+                            _getTaskDefinition({}).task();
+                            const skip = _listrMock.ctor.args[0][0][index].skip;
+                            expect(skip).to.be.a('function');
+                        });
+
+                        it(`should return false if ctx.${skipFlag} === false`, () => {
+                            const ret = _execSkip(undefined, {
+                                [skipFlag]: false
+                            });
+                            expect(ret).to.be.false;
+                        });
+
+                        it(`should return a message if ctx.${skipFlag} === true`, () => {
+                            const ret = _execSkip(undefined, {
+                                [skipFlag]: true
+                            });
+                            if (skipFlag === 'skipTemplateImageDownload') {
+                                expect(ret).to.equal(
+                                    'Template image already downloaded'
+                                );
+                            } else {
+                                expect(ret).to.equal(
+                                    'Temporary SSH keys already exist'
+                                );
+                            }
+                        });
+                    });
+                }
             });
         });
     });

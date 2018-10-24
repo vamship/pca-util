@@ -6,6 +6,18 @@ import { SshClient } from '@vamship/ssh-utils';
 import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
+const checkImageDownloadRequiredCommands = [
+    [
+        '# ---------- Check if the VM image already exists on disk ----------',
+        'stat bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1'
+    ].join('\n')
+];
+const checkTemporarySshKeysRequiredCommands = [
+    [
+        '# ---------- Check if the VM image already exists on disk ----------',
+        'stat ~/.ssh/id_rsa_template 1>/dev/null 2>&1'
+    ].join('\n')
+];
 const downloadImageCommands = [
     [
         '# ---------- Download the VM image from Ubuntu ----------',
@@ -40,7 +52,65 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
             const logger = _loggerProvider.getLogger('setup-template-env');
             return new Listr([
                 {
+                    title: 'Check if template image download is required',
+                    task: (ctx, task) => {
+                        logger.trace(
+                            'Check if template image download is required'
+                        );
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(checkImageDownloadRequiredCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    logger.debug(
+                                        'Template image download required'
+                                    );
+                                    ctx.skipTemplateImageDownload = false;
+                                } else {
+                                    logger.warn(
+                                        'Template image already downloaded'
+                                    );
+                                    ctx.skipTemplateImageDownload = true;
+                                }
+                            });
+                    }
+                },
+                {
+                    title: 'Check if temporary SSH keys have to be created',
+                    task: (ctx, task) => {
+                        logger.trace(
+                            'Check if temporary SSH keys have to be created'
+                        );
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(checkTemporarySshKeysRequiredCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    logger.debug(
+                                        'Temporary SSH keys must be created'
+                                    );
+                                    ctx.skipTemporaryKeyCreation = false;
+                                } else {
+                                    logger.warn(
+                                        'Temporary SSH keys already exist'
+                                    );
+                                    ctx.skipTemporaryKeyCreation = true;
+                                }
+                            });
+                    }
+                },
+                {
                     title: 'Download template image',
+                    skip: (ctx) => {
+                        if (ctx.skipTemplateImageDownload) {
+                            logger.warn('Skipping template image download');
+                            return 'Template image already downloaded';
+                        }
+                        logger.debug('Template image download required');
+                        return false;
+                    },
                     task: () => {
                         logger.trace('Download template image');
                         const sshClient = new SshClient(hostInfo);
@@ -60,7 +130,15 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                     }
                 },
                 {
-                    title: 'Create temporary ssh keys',
+                    title: 'Create temporary SSH keys',
+                    skip: (ctx) => {
+                        if (ctx.skipTemporaryKeyCreation) {
+                            logger.warn('Skipping temporary SSH key creation');
+                            return 'Temporary SSH keys already exist';
+                        }
+                        logger.debug('Temporary SSH key creation required');
+                        return false;
+                    },
                     task: () => {
                         logger.trace('Create temporary ssh keys');
                         const sshClient = new SshClient(hostInfo);
