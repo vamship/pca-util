@@ -10,31 +10,31 @@ import { IRemoteHostInfo, ITaskDefinition } from '../types';
 const cloneBaselineTemplateCommands = [
     [
         '# ---------- Copy the baseline template ----------',
-        'qm clone 1000 1001 --name k8s-node'
+        'qm clone 1000 1002 --name developer-node'
     ].join('\n'),
 
     [
         '# ---------- Configure the template with ip address and ssh key ----------',
         [
-            'qm set 1001 --ciuser kube --sshkey ~/.ssh/id_rsa_template.pub',
-            '--ipconfig0 ip=10.0.0.11/24,gw=10.0.0.1 --nameserver 8.8.8.8'
+            'qm set 1002 --ciuser kube --sshkey ~/.ssh/id_rsa_template.pub',
+            '--ipconfig0 ip=10.0.0.12/24,gw=10.0.0.1 --nameserver 8.8.8.8'
         ].join(' ')
     ].join('\n'),
 
-    ['# ---------- Resize disk ----------', 'qm resize 1001 scsi0 +8G'].join(
+    ['# ---------- Resize disk ----------', 'qm resize 1002 scsi0 +8G'].join(
         '\n'
     ),
 
     [
         '# ---------- Start an instance of the template ----------',
-        'qm start 1001'
+        'qm start 1002'
     ].join('\n')
 ];
 
 const installSoftwareCommands = [
     [
         '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
-        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
+        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
@@ -63,10 +63,53 @@ const installSoftwareCommands = [
         'deb http://apt.kubernetes.io/ kubernetes-xenial main',
         'EOF',
         'apt-get update',
-        'apt-get install -y kubelet kubeadm kubectl',
-        'apt-mark hold kubelet kubeadm kubectl',
+        'apt-get install -y kubectl',
+        'apt-mark hold kubectl',
         '',
         'END_SUDO',
+        'END_SCRIPT'
+    ].join('\n')
+];
+
+const installDeveloperToolsCommands = [
+    [
+        '# ---------- Setup shell and vi ----------',
+        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
+        '',
+        '# ---------- Echo commands ----------',
+        'set -x',
+        '',
+        '# ---------- Install zsh and vim ----------',
+        'sudo apt-add-repository ppa:neovim-ppa/stable',
+        'sudo apt-get update',
+        'sudo apt-get install -y zsh tree vim git vim-nox',
+        '',
+        '# ---------- Copy zsh and vim config files ----------',
+        'git clone --recursive https://github.com/vamship/vim-files ~/.vim',
+        'git clone --recursive https://github.com/vamship/zsh-files ~/.zsh-files',
+        '',
+        '# ---------- Install zsh and vim ----------',
+        'ln -s ~/.vim/_vimrc ~/.vimrc',
+        'ln -s ~/.zsh-files/_zshenv ~/.zshenv',
+        '',
+        '# ---------- Set default shell ----------',
+        'sudo chsh -s /bin/zsh kube',
+        '',
+        '# ---------- neovim installation ----------',
+        'sudo apt-get install -y software-properties-common python-software-properties',
+        'sudo apt-get install -y neovim',
+        '',
+        '# ---------- Install neovim ----------',
+        'sudo apt-get install -y python-pip',
+        'sudo pip install neovim',
+        '',
+        '# ---------- neovim configuration ----------',
+        'mkdir -p ~/.config/nvim',
+        '',
+        'ln -s ~/.vim/UltiSnips ~/.config/nvim/Ultisnips',
+        'ln -s ~/.vim/_vimrc ~/.config/nvim/init.vim',
+        'ln -s ~/.vim/plugged ~/.config/nvim/plugged',
+        '',
         'END_SCRIPT'
     ].join('\n')
 ];
@@ -74,7 +117,7 @@ const installSoftwareCommands = [
 const cleanupTemplateCommands = [
     [
         '# ---------- Clean up instance and prep for conversion to template ----------',
-        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
+        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
@@ -130,26 +173,26 @@ const cleanupTemplateCommands = [
         'END_SCRIPT'
     ].join('\n'),
 
-    ['# ---------- Shutdown the instance ----------', 'qm shutdown 1001'].join(
+    ['# ---------- Shutdown the instance ----------', 'qm shutdown 1002'].join(
         '\n'
     ),
 
     [
         '# ---------- Reset ssh keys and ip configuration for the template ----------',
-        'qm set 1001 --sshkeys ./nokey --ipconfig0 ip=dhcp'
+        'qm set 1002 --sshkeys ./nokey --ipconfig0 ip=dhcp'
     ].join('\n')
 ];
 
 const convertToTemplateCommands = [
     [
         '# ---------- Convert the VM into a template ----------',
-        'qm template 1001'
+        'qm template 1002'
     ].join('\n')
 ];
 
 /**
  * Returns a task that can be used to build a template that will serve as
- * as the template for all k8s nodes.
+ * as the template for all developer nodes, including bastion nodes.
  *
  * @param hostInfo Informtation about the remote host against which the task
  *        will be executed.
@@ -159,9 +202,11 @@ const convertToTemplateCommands = [
  */
 export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
     return {
-        title: 'Build k8s VM template',
+        title: 'Build developer VM template',
         task: () => {
-            const logger = _loggerProvider.getLogger('build-k8s-vm-template');
+            const logger = _loggerProvider.getLogger(
+                'build-developer-vm-template'
+            );
             return new Listr([
                 {
                     title: 'Clone and configure baseline template',
@@ -174,13 +219,13 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                 logger.trace(results);
                                 if (results.failureCount > 0) {
                                     const err = new Error(
-                                        'Error cloning baseline into k8s VM'
+                                        'Error cloning baseline into developer VM'
                                     );
                                     logger.error(err);
                                     throw err;
                                 }
                                 logger.debug(
-                                    'Cloned baseline template into k8s VM'
+                                    'Cloned baseline template into developer VM'
                                 );
                             });
                     }
@@ -192,7 +237,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                     }
                 },
                 {
-                    title: 'Install docker, kubectl, kubeadm and kubelet',
+                    title: 'Install kubectl',
                     task: () => {
                         logger.trace('Install required software on VM');
                         const sshClient = new SshClient(hostInfo);
@@ -210,6 +255,26 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                 logger.debug(
                                     'Required software installed on VM'
                                 );
+                            });
+                    }
+                },
+                {
+                    title: 'Install developer tools',
+                    task: () => {
+                        logger.trace('Install developer tools');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(installDeveloperToolsCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error installing developer tools on VM'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug('Developer tools installed on VM');
                             });
                     }
                 },
