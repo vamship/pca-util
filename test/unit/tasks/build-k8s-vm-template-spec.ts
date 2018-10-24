@@ -70,6 +70,11 @@ describe('[build-k8s-vm-template task]', () => {
         const expectedTitle = 'Build k8s VM template';
         const subTaskList = [
             {
+                title: 'Check if k8s template build is required',
+                commandCount: 1,
+                eatError: true
+            },
+            {
                 title: 'Clone and configure baseline template',
                 commandCount: 4,
                 eatError: false
@@ -155,6 +160,46 @@ describe('[build-k8s-vm-template task]', () => {
                             execSubTask,
                             getSshClientMock
                         );
+
+                        if (index === 0) {
+                            it('should set the ctx.skipTemplateBuild=false if command execution fails', () => {
+                                const sshClientMock = getSshClientMock();
+                                const runMethod = sshClientMock.mocks.run;
+                                const ctx = {
+                                    skipTemplateBuild: undefined
+                                };
+
+                                const ret = execSubTask(undefined, ctx);
+                                runMethod.resolve({
+                                    commandCount,
+                                    successCount: 0,
+                                    failureCount: commandCount
+                                });
+
+                                return expect(ret).to.be.fulfilled.then(() => {
+                                    expect(ctx.skipTemplateBuild).to.be.false;
+                                });
+                            });
+
+                            it('should set the ctx.skipTemplateBuild=true if command execution succeeds', () => {
+                                const sshClientMock = getSshClientMock();
+                                const runMethod = sshClientMock.mocks.run;
+                                const ctx = {
+                                    skipTemplateBuild: undefined
+                                };
+
+                                const ret = execSubTask(undefined, ctx);
+                                runMethod.resolve({
+                                    commandCount,
+                                    successCount: commandCount,
+                                    failureCount: 0
+                                });
+
+                                return expect(ret).to.be.fulfilled.then(() => {
+                                    expect(ctx.skipTemplateBuild).to.be.true;
+                                });
+                            });
+                        }
                     } else {
                         it('should return a promise when invoked', () => {
                             const ret = execSubTask();
@@ -179,6 +224,41 @@ describe('[build-k8s-vm-template task]', () => {
                         it('should return the promise from the delay method', () => {
                             const ret = execSubTask();
                             expect(ret).to.equal(_promiseMock.__delayPromise);
+                        });
+                    }
+                    if (index > 0) {
+                        describe('[skip]', () => {
+                            function _execSkip(
+                                args: object = {},
+                                ctx: object = {}
+                            ) {
+                                _listrMock.ctor.resetHistory();
+                                _getTaskDefinition(args).task();
+                                return _listrMock.ctor.args[0][0][index].skip(
+                                    ctx
+                                );
+                            }
+
+                            it('should define a skip function', () => {
+                                _getTaskDefinition({}).task();
+                                const skip =
+                                    _listrMock.ctor.args[0][0][index].skip;
+                                expect(skip).to.be.a('function');
+                            });
+
+                            it('should return false if ctx.skipTemplateBuild === false', () => {
+                                const ret = _execSkip(undefined, {
+                                    skipTemplateBuild: false
+                                });
+                                expect(ret).to.be.false;
+                            });
+
+                            it('should return a message if ctx.skipTemplateBuild === true', () => {
+                                const ret = _execSkip(undefined, {
+                                    skipTemplateBuild: true
+                                });
+                                expect(ret).to.equal('Template already exists');
+                            });
                         });
                     }
                 });

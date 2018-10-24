@@ -7,6 +7,13 @@ import { Promise } from 'bluebird';
 import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
+const checkBuildRequiredCommands = [
+    [
+        '# ---------- Check if baseline template already exists ----------',
+        'qm status 1002 1>/dev/null 2>&1'
+    ].join('\n')
+];
+
 const cloneBaselineTemplateCommands = [
     [
         '# ---------- Copy the baseline template ----------',
@@ -207,9 +214,39 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
             const logger = _loggerProvider.getLogger(
                 'build-developer-vm-template'
             );
+            function skip(ctx) {
+                if (ctx.skipTemplateBuild) {
+                    logger.warn('Skipping template build');
+                    return 'Template already exists';
+                }
+                logger.debug('Template build required');
+                return false;
+            }
             return new Listr([
                 {
+                    title: 'Check if developer template build is required',
+                    task: (ctx, task) => {
+                        logger.trace(
+                            'Check if developer template build is required'
+                        );
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(checkBuildRequiredCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    logger.debug('Template build required');
+                                    ctx.skipTemplateBuild = false;
+                                } else {
+                                    logger.warn('Template already exists');
+                                    ctx.skipTemplateBuild = true;
+                                }
+                            });
+                    }
+                },
+                {
                     title: 'Clone and configure baseline template',
+                    skip,
                     task: () => {
                         logger.trace('Clone and configure baseline template');
                         const sshClient = new SshClient(hostInfo);
@@ -232,12 +269,14 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 },
                 {
                     title: 'Wait for VM instance to start up',
+                    skip,
                     task: () => {
                         return Promise.delay(180000);
                     }
                 },
                 {
                     title: 'Install kubectl',
+                    skip,
                     task: () => {
                         logger.trace('Install required software on VM');
                         const sshClient = new SshClient(hostInfo);
@@ -260,6 +299,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 },
                 {
                     title: 'Install developer tools',
+                    skip,
                     task: () => {
                         logger.trace('Install developer tools');
                         const sshClient = new SshClient(hostInfo);
@@ -280,6 +320,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 },
                 {
                     title: 'Clean up template; prep for conversion to template',
+                    skip,
                     task: () => {
                         logger.trace(
                             'Clean up template; prep for conversion to template'
@@ -304,6 +345,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 },
                 {
                     title: 'Convert VM into template',
+                    skip,
                     task: () => {
                         logger.trace('Convert VM into template');
                         const sshClient = new SshClient(hostInfo);
