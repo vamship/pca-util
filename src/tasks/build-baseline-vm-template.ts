@@ -8,15 +8,29 @@ import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const createVmCommands = [
     [
-        'qm create 1000 --name baseline --memory 2048 --cores 1 --socket 1',
-        '--net0 virtio,bridge=vmbr300 --ide2 local-lvm:cloudinit',
-        '--serial0 socket --vga serial0 --boot c --bootdisk scsi0',
-        '--ipconfig0 ip=dhcp'
-    ].join(' '),
-    'qm importdisk 1000 bionic-server-cloudimg-amd64.img local-lvm',
-    'qm set 1000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1000-disk-1'
+        '# ---------- Create baseline VM ----------',
+        [
+            'qm create 1000 --name baseline --memory 2048 --cores 1 --socket 1',
+            '--net0 virtio,bridge=vmbr300 --ide2 local-lvm:cloudinit',
+            '--serial0 socket --vga serial0 --boot c --bootdisk scsi0',
+            '--ipconfig0 ip=dhcp'
+        ].join(' ')
+    ].join('\n'),
+    [
+        '# ---------- Import the disk image into the VM ----------',
+        'qm importdisk 1000 bionic-server-cloudimg-amd64.img local-lvm'
+    ].join('\n'),
+    [
+        '# ---------- Set the imported image as scsi0 ----------',
+        'qm set 1000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1000-disk-1'
+    ].join('\n')
 ];
-const convertToTemplateCommands = ['qm template 1000'];
+const convertToTemplateCommands = [
+    [
+        '# ---------- Convert VM into a template ----------',
+        'qm template 1000'
+    ].join('\n')
+];
 
 /**
  * Returns a task that can be used to build a baseline template that will serve

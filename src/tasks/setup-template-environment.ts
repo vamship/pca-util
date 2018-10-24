@@ -7,11 +7,20 @@ import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const downloadImageCommands = [
-    'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img'
+    [
+        '# ---------- Download the VM image from Ubuntu ----------',
+        'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img'
+    ].join('\n')
 ];
 const createTemporarySshKeysCommands = [
-    "ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ~/.ssh/id_rsa_template -N ''",
-    ["cat <<'EOF' > nokey", '', 'EOF'].join('\n')
+    [
+        '# ---------- Generate SSH keys for the template ----------',
+        "ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ~/.ssh/id_rsa_template -N ''"
+    ].join('\n'),
+    [
+        '# ---------- Generate empty ssh key (required to remove ssh keys from cloud init) ----------',
+        ["cat <<'EOF' > nokey", '', 'EOF'].join('\n')
+    ].join('\n')
 ];
 
 /**

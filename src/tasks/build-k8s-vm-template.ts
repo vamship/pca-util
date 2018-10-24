@@ -8,37 +8,43 @@ import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const cloneBaselineTemplateCommands = [
-    ['# Copy the baseline template', 'qm clone 1000 1001 --name k8s-node'].join(
-        '\n'
-    ),
+    [
+        '# ---------- Copy the baseline template ----------',
+        'qm clone 1000 1001 --name k8s-node'
+    ].join('\n'),
 
     [
-        '# Configure the template with ip address and ssh key',
+        '# ---------- Configure the template with ip address and ssh key ----------',
         [
             'qm set 1001 --ciuser kube --sshkey ~/.ssh/id_rsa_template.pub',
             '--ipconfig0 ip=10.0.0.11/24,gw=10.0.0.1 --nameserver 8.8.8.8'
         ].join(' ')
     ].join('\n'),
 
-    ['# Resize disk', 'qm resize 1001 scsi0 +8G'].join('\n'),
+    ['# ---------- Resize disk ----------', 'qm resize 1001 scsi0 +8G'].join(
+        '\n'
+    ),
 
-    ['# Start an instance of the template', 'qm start 1001'].join('\n')
+    [
+        '# ---------- Start an instance of the template ----------',
+        'qm start 1001'
+    ].join('\n')
 ];
 
 const installSoftwareCommands = [
     [
-        '# Install docker, kubectl, kubeadm and kubelet',
+        '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
         "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
-        '# Echo commands',
+        '# ---------- Echo commands ----------',
         'set -x',
         '',
-        '# Update APT, install dependencies',
+        '# ---------- Update APT, install dependencies ----------',
         'apt-get update',
         'apt-get install -y apt-transport-https ca-certificates curl software-properties-common',
         '',
-        '# Install docker',
+        '# ---------- Install docker ----------',
         'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -',
         [
             'add-apt-repository',
@@ -51,7 +57,7 @@ const installSoftwareCommands = [
             "| grep 18.06 | head -1 | awk '{print $3}')"
         ].join(' '),
         '',
-        '# Install kubectl, kubeadm and kubelet',
+        '# ---------- Install kubectl, kubeadm and kubelet ----------',
         'curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -',
         'cat <<EOF >/etc/apt/sources.list.d/kubernetes.list',
         'deb http://apt.kubernetes.io/ kubernetes-xenial main',
@@ -67,17 +73,17 @@ const installSoftwareCommands = [
 
 const cleanupTemplateCommands = [
     [
-        '# Clean up instance and prep for conversion to template',
+        '# ---------- Clean up instance and prep for conversion to template ----------',
         "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
-        '# Echo commands',
+        '# ---------- Echo commands ----------',
         'set -x',
         '',
-        '# Clean up apt cache files',
+        '# ---------- Clean up apt cache files ----------',
         'apt clean all',
         '',
-        '# Clean up log files',
+        '# ---------- Clean up log files ----------',
         'logrotate -f /etc/logrotate.conf',
         'rm -f /var/log/*.gz /var/log/*.1',
         '',
@@ -101,21 +107,21 @@ const cleanupTemplateCommands = [
         'cat /dev/null > /var/log/tallylog',
         'cat /dev/null > /var/log/wtmp',
         '',
-        '# Clean up temp files',
+        '# ---------- Clean up temp files ----------',
         'rm -rf /tmp/*',
         'rm -rf /var/tmp/*',
         '',
-        '# Clean up SSH keys',
+        '# ---------- Clean up SSH keys ----------',
         'rm -f /etc/ssh/*key*',
         '',
-        '# Clean up bash history and SSH keys for the user: kube.',
+        '# ---------- Clean up bash history and SSH keys for the user: kube. ----------',
         'rm -f ~kube/.bash_history',
         'rm -rf ~kube/.ssh/',
         'rm -rf ~kube/.cache/',
         'rm -rf ~kube/.gnupg/',
         'rm -f ~kube/sudo_as_admin_successful',
         '',
-        '# Clean up bash history and SSH keys for the user: root.',
+        '# ---------- Clean up bash history and SSH keys for the user: root. ----------',
         'rm -f ~root/.bash_history',
         'rm -rf ~root/.ssh/',
         'unset HISTFILE',
@@ -124,16 +130,21 @@ const cleanupTemplateCommands = [
         'END_SCRIPT'
     ].join('\n'),
 
-    ['# Shutdown the instance', 'qm shutdown 1001'].join('\n'),
+    ['# ---------- Shutdown the instance ----------', 'qm shutdown 1001'].join(
+        '\n'
+    ),
 
     [
-        '# Reset ssh keys and ip configuration for the template',
+        '# ---------- Reset ssh keys and ip configuration for the template ----------',
         'qm set 1001 --sshkeys ./nokey --ipconfig0 ip=dhcp'
     ].join('\n')
 ];
 
 const convertToTemplateCommands = [
-    ['# Convert the VM into a template', 'qm template 1001'].join('\n')
+    [
+        '# ---------- Convert the VM into a template ----------',
+        'qm template 1001'
+    ].join('\n')
 ];
 
 /**

@@ -74,7 +74,7 @@ describe('[update-host task]', () => {
             },
             {
                 title: 'Upgrade host system',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {

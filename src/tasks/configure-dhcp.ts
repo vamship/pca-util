@@ -7,14 +7,21 @@ import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkConfigRequiredCommands = [
-    'grep -iq "vmbr300" /etc/default/isc-dhcp-server'
+    [
+        '# ---------- Check if dhcp server has already been configured ----------',
+        'grep -iq "vmbr300" /etc/default/isc-dhcp-server'
+    ].join('\n')
 ];
 const installDhcpServerCommands = [
-    'apt update',
-    'apt install -y isc-dhcp-server'
+    ['# ---------- Update apt ----------', 'apt update'].join('\n'),
+    [
+        '# ---------- Install DHCP server ----------',
+        'apt install -y isc-dhcp-server'
+    ].join('\n')
 ];
 const configureDhcpServerCommands = [
     [
+        '# ---------- Update dhcp server defaults - only provide dhcp over vbmr300 ----------',
         "cat <<'EOF' >> /etc/default/isc-dhcp-server",
         'INTERFACESv4="vmbr300"',
         'INTERFACESv6=""',
@@ -26,6 +33,7 @@ const configureDhcpServerCommands = [
 ];
 const configureDhcpDaemonCommands = [
     [
+        '# ---------- Setup DHCP subnet for internal IP addresses ----------',
         "cat <<'EOF' >> /etc/dhcp/dhcpd.conf",
         'default-lease-time          3600;',
         'max-lease-time              7200;',
@@ -41,7 +49,10 @@ const configureDhcpDaemonCommands = [
     ].join('\n')
 ];
 const restartDhcpServiceCommands = [
-    'systemctl restart isc-dhcp-server.service'
+    [
+        '# ---------- Restart DHCP service ----------',
+        'systemctl restart isc-dhcp-server.service'
+    ].join('\n')
 ];
 
 /**

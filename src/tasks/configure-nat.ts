@@ -7,10 +7,14 @@ import Listr from 'listr';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkConfigRequiredCommands = [
-    'grep -iq "vmbr300" /etc/network/interfaces'
+    [
+        '# ---------- Check if NAT/port forwarding has already been configured ----------',
+        'grep -iq "vmbr300" /etc/network/interfaces'
+    ].join('\n')
 ];
 const configureNatCommands = [
     [
+        '# ---------- Add a new bridge with both NAT and port forwarding  ----------',
         "cat <<'EOF' >> /etc/network/interfaces",
         'auto vmbr300',
         'iface vmbr300 inet static',
@@ -28,7 +32,10 @@ const configureNatCommands = [
     ].join('\n')
 ];
 const restartNetworkingServiceCommands = [
-    'systemctl restart networking.service'
+    [
+        '# ---------- Restart networking service ----------',
+        'systemctl restart networking.service'
+    ].join('\n')
 ];
 
 /**
