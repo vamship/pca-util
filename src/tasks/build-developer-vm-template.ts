@@ -34,7 +34,7 @@ const cloneBaselineTemplateCommands = [
 const installSoftwareCommands = [
     [
         '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
-        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
+        "ssh -o 'StrictHostKeyChecking no' -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
@@ -74,7 +74,7 @@ const installSoftwareCommands = [
 const installDeveloperToolsCommands = [
     [
         '# ---------- Setup shell and vi ----------',
-        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
+        "ssh -o 'StrictHostKeyChecking no' -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
         '',
         '# ---------- Echo commands ----------',
         'set -x',
@@ -117,7 +117,7 @@ const installDeveloperToolsCommands = [
 const cleanupTemplateCommands = [
     [
         '# ---------- Clean up instance and prep for conversion to template ----------',
-        "ssh -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
+        "ssh -o 'StrictHostKeyChecking no' -i ~/.ssh/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
