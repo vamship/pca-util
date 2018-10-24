@@ -2,7 +2,11 @@
  * @module root.commands.configureHost
  */
 import Listr from 'listr';
-import { getTask as _getSetupTemplateEnvTask } from '../tasks/configure-dhcp';
+import { getTask as _getBuildBaselineTemplateTask } from '../tasks/build-baseline-vm-template';
+import { getTask as _getBuildDeveloperTemplateTask } from '../tasks/build-developer-vm-template';
+import { getTask as _getBuildK8sTemplateTask } from '../tasks/build-k8s-vm-template';
+import { getTask as _getCleanupTemplateEnvTask } from '../tasks/cleanup-template-environment';
+import { getTask as _getSetupTemplateEnvTask } from '../tasks/setup-template-environment';
 import { IRemoteHostInfo } from '../types';
 
 export const command = 'create-templates';
@@ -53,5 +57,11 @@ export const handler = (argv) => {
         privateKey
     };
 
-    return new Listr([_getSetupTemplateEnvTask(hostInfo)]).run();
+    return new Listr([
+        _getSetupTemplateEnvTask(hostInfo),
+        _getBuildBaselineTemplateTask(hostInfo),
+        _getBuildK8sTemplateTask(hostInfo),
+        _getBuildDeveloperTemplateTask(hostInfo),
+        _getCleanupTemplateEnvTask(hostInfo)
+    ]).run();
 };

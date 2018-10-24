@@ -64,11 +64,11 @@ describe('[create-templates command]', () => {
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
         [
-            'setup-template-env'
-            // 'create-baseline-template',
-            // 'create-k8s-template',
-            // 'create-developer-template',
-            // 'cleanup-template-env'
+            'setup-template-environment',
+            'build-baseline-vm-template',
+            'build-k8s-vm-template',
+            'build-developer-vm-template',
+            'cleanup-template-environment'
         ].forEach((mockName) => {
             _taskMocks[mockName] = new ObjectMock().addMock('getTask', () => {
                 return _taskMocks[mockName].__taskDefinition;
@@ -80,8 +80,24 @@ describe('[create-templates command]', () => {
             default: _listrMock.ctor
         });
         _commandModule.__set__(
-            'configure_dhcp_1',
-            _taskMocks['setup-template-env'].instance
+            'setup_template_environment_1',
+            _taskMocks['setup-template-environment'].instance
+        );
+        _commandModule.__set__(
+            'build_baseline_vm_template_1',
+            _taskMocks['build-baseline-vm-template'].instance
+        );
+        _commandModule.__set__(
+            'build_k8s_vm_template_1',
+            _taskMocks['build-k8s-vm-template'].instance
+        );
+        _commandModule.__set__(
+            'build_developer_vm_template_1',
+            _taskMocks['build-developer-vm-template'].instance
+        );
+        _commandModule.__set__(
+            'cleanup_template_environment_1',
+            _taskMocks['cleanup-template-environment'].instance
         );
     });
 
