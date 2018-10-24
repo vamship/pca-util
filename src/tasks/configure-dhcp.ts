@@ -88,7 +88,9 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                 {
                     title: 'Check if DHCP configuration is required',
                     task: (ctx, task) => {
-                        logger.trace('Checking if DHCP configuration is required');
+                        logger.trace(
+                            'Checking if DHCP configuration is required'
+                        );
                         const sshClient = new SshClient(hostInfo);
                         return sshClient
                             .run(checkConfigRequiredCommands)
