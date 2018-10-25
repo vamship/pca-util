@@ -28,7 +28,7 @@ const createVmCommands = [
     ].join('\n'),
     [
         '# ---------- Set the imported image as scsi0 ----------',
-        'qm set 1000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1000-disk-1'
+        'qm set 1000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1000-disk-0'
     ].join('\n')
 ];
 const convertToTemplateCommands = [
