@@ -165,46 +165,7 @@ describe('[build-developer-vm-template task]', () => {
                             execSubTask,
                             getSshClientMock
                         );
-                        if (index === 0) {
-                            it('should set the ctx.skipTemplateBuild=false if command execution fails', () => {
-                                const sshClientMock = getSshClientMock();
-                                const runMethod = sshClientMock.mocks.run;
-                                const ctx = {
-                                    skipTemplateBuild: undefined
-                                };
-
-                                const ret = execSubTask(undefined, ctx);
-                                runMethod.resolve({
-                                    commandCount,
-                                    successCount: 0,
-                                    failureCount: commandCount
-                                });
-
-                                return expect(ret).to.be.fulfilled.then(() => {
-                                    expect(ctx.skipTemplateBuild).to.be.false;
-                                });
-                            });
-
-                            it('should set the ctx.skipTemplateBuild=true if command execution succeeds', () => {
-                                const sshClientMock = getSshClientMock();
-                                const runMethod = sshClientMock.mocks.run;
-                                const ctx = {
-                                    skipTemplateBuild: undefined
-                                };
-
-                                const ret = execSubTask(undefined, ctx);
-                                runMethod.resolve({
-                                    commandCount,
-                                    successCount: commandCount,
-                                    failureCount: 0
-                                });
-
-                                return expect(ret).to.be.fulfilled.then(() => {
-                                    expect(ctx.skipTemplateBuild).to.be.true;
-                                });
-                            });
-                        }
-                    } else {
+                    } else if (index === 2) {
                         it('should return a promise when invoked', () => {
                             const ret = execSubTask();
 
@@ -231,7 +192,45 @@ describe('[build-developer-vm-template task]', () => {
                         });
                     }
 
-                    if (index > 0) {
+                    if (index === 0) {
+                        it('should set the ctx.skipTemplateBuild=false if command execution fails', () => {
+                            const sshClientMock = getSshClientMock();
+                            const runMethod = sshClientMock.mocks.run;
+                            const ctx = {
+                                skipTemplateBuild: undefined
+                            };
+
+                            const ret = execSubTask(undefined, ctx);
+                            runMethod.resolve({
+                                commandCount,
+                                successCount: 0,
+                                failureCount: commandCount
+                            });
+
+                            return expect(ret).to.be.fulfilled.then(() => {
+                                expect(ctx.skipTemplateBuild).to.be.false;
+                            });
+                        });
+
+                        it('should set the ctx.skipTemplateBuild=true if command execution succeeds', () => {
+                            const sshClientMock = getSshClientMock();
+                            const runMethod = sshClientMock.mocks.run;
+                            const ctx = {
+                                skipTemplateBuild: undefined
+                            };
+
+                            const ret = execSubTask(undefined, ctx);
+                            runMethod.resolve({
+                                commandCount,
+                                successCount: commandCount,
+                                failureCount: 0
+                            });
+
+                            return expect(ret).to.be.fulfilled.then(() => {
+                                expect(ctx.skipTemplateBuild).to.be.true;
+                            });
+                        });
+                    } else {
                         describe('[skip]', () => {
                             function _execSkip(
                                 args: object = {},
