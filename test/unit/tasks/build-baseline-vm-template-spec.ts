@@ -59,6 +59,11 @@ describe('[build-baseline-vm-template task]', () => {
                 eatError: true
             },
             {
+                title: 'Ensure that working directories exist',
+                commandCount: 1,
+                eatError: false
+            },
+            {
                 title: 'Create baseline VM',
                 commandCount: 3,
                 eatError: false

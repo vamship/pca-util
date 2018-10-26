@@ -5,26 +5,31 @@ import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import { Promise } from 'bluebird';
 import Listr from 'listr';
+import { HOST_CERTS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
+
+const ensureWorkingDirectoriesCommands = [
+    [
+        '# ---------- Ensure that working directories exist ----------',
+        `mkdir -p ${HOST_CERTS_DIR}`
+    ].join('\n')
+];
 
 const createCACertCommands = [
     [
-        '# ---------- Create directory for CA certificates ----------',
-        'mkdir -p ~/_pca_working/certs'
-    ].join('\n'),
-    [
         '# ---------- Create key pair for CA certs ----------',
-        'openssl genrsa -out ~/_pca_working/certs/ca.key 4096'
+        `openssl genrsa -out ${HOST_CERTS_DIR}/ca.key 4096`
     ].join('\n'),
     [
         '# ---------- Generate CA cert from key pair ----------',
         [
             'openssl req',
-            '-key ~/_pca_working/certs/ca.key',
+            `-key ${HOST_CERTS_DIR}/ca.key`,
+            `-out ${HOST_CERTS_DIR}/ca.crt`,
             '-new -x509',
             '-days 7300',
             '-sha256',
-            '-out ~/_pca_working/certs/ca.crt -extensions v3_ca',
+            '-extensions v3_ca',
             "-subj '/C=US/ST=Massachusetts/L=Boston/CN=K8S CA'"
         ].join(' ')
     ].join('\n')
@@ -60,6 +65,28 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
             const logger = _loggerProvider.getLogger('configure-k8s-cluster');
             logger.trace(Promise);
             return new Listr([
+                {
+                    title: 'Ensure that working directories exist',
+                    task: () => {
+                        logger.trace('Ensuring that working directories exist');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(ensureWorkingDirectoriesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error ensuring working directories'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Working directories created (or already exist)'
+                                );
+                            });
+                    }
+                },
                 {
                     title: 'Create CA certs for the cluster',
                     task: () => {

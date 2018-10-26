@@ -4,6 +4,7 @@
 import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import Listr from 'listr';
+import { HOST_IMAGES_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkBuildRequiredCommands = [
@@ -12,6 +13,14 @@ const checkBuildRequiredCommands = [
         'qm status 1000 1>/dev/null 2>&1'
     ].join('\n')
 ];
+
+const ensureWorkingDirectoriesCommands = [
+    [
+        '# ---------- Ensure that working directories exist ----------',
+        `mkdir -p ${HOST_IMAGES_DIR}`
+    ].join('\n')
+];
+
 const createVmCommands = [
     [
         '# ---------- Create baseline VM ----------',
@@ -24,13 +33,14 @@ const createVmCommands = [
     ].join('\n'),
     [
         '# ---------- Import the disk image into the VM ----------',
-        'qm importdisk 1000 ~/_pca_working/images/bionic-server-cloudimg-amd64.img local-lvm'
+        `qm importdisk 1000 ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img local-lvm`
     ].join('\n'),
     [
         '# ---------- Set the imported image as scsi0 ----------',
         'qm set 1000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-1000-disk-0'
     ].join('\n')
 ];
+
 const convertToTemplateCommands = [
     [
         '# ---------- Convert VM into a template ----------',
@@ -82,6 +92,29 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     logger.warn('Template already exists');
                                     ctx.skipTemplateBuild = true;
                                 }
+                            });
+                    }
+                },
+                {
+                    title: 'Ensure that working directories exist',
+                    skip,
+                    task: () => {
+                        logger.trace('Ensuring that working directories exist');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(ensureWorkingDirectoriesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error ensuring working directories'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Working directories created (or already exist)'
+                                );
                             });
                     }
                 },

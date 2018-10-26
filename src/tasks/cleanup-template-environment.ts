@@ -4,18 +4,20 @@
 import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import Listr from 'listr';
+import { HOST_IMAGES_DIR, HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const deleteImageCommands = [
     [
         '# ---------- Delete downloaded VM image ----------',
-        'rm -f _pca_working/images/bionic-server-cloudimg-amd64.img'
+        `rm -f ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
     ].join('\n')
 ];
 const deleteTemporarySshKeysCommands = [
     [
         '# ---------- Delete temporary ssh keys ----------',
-        'rm -f ~/.ssh/id_rsa_template* ./nokey'
+        `rm -f ${HOST_SSH_KEYS_DIR}/id_rsa_template*`,
+        `rm -f ${HOST_SSH_KEYS_DIR}/nokey`
     ].join('\n')
 ];
 const cleanupKnownHostsFileCommands = [

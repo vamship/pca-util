@@ -12,6 +12,7 @@ const checkConfigRequiredCommands = [
         'grep -iq "vmbr300" /etc/network/interfaces'
     ].join('\n')
 ];
+
 const configureNatCommands = [
     [
         '# ---------- Add a new bridge with both NAT and port forwarding  ----------',
@@ -31,6 +32,7 @@ const configureNatCommands = [
         'EOF'
     ].join('\n')
 ];
+
 const restartNetworkingServiceCommands = [
     [
         '# ---------- Restart networking service ----------',

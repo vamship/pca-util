@@ -71,6 +71,11 @@ describe('[init-k8s-instances task]', () => {
                 eatError: true
             },
             {
+                title: 'Ensure that working directories exist',
+                commandCount: 1,
+                eatError: false
+            },
+            {
                 title: 'Create SSH keys for instances',
                 commandCount: 4,
                 eatError: false

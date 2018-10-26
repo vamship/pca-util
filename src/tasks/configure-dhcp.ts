@@ -12,6 +12,7 @@ const checkConfigRequiredCommands = [
         'grep -iq "vmbr300" /etc/default/isc-dhcp-server'
     ].join('\n')
 ];
+
 const installDhcpServerCommands = [
     ['# ---------- Update apt ----------', 'apt update'].join('\n'),
     [
@@ -19,6 +20,7 @@ const installDhcpServerCommands = [
         'apt install -y isc-dhcp-server'
     ].join('\n')
 ];
+
 const configureDhcpServerCommands = [
     [
         '# ---------- Update dhcp server defaults - only provide dhcp over vbmr300 ----------',
@@ -31,6 +33,7 @@ const configureDhcpServerCommands = [
         'EOF'
     ].join('\n')
 ];
+
 const configureDhcpDaemonCommands = [
     [
         '# ---------- Setup DHCP subnet for internal IP addresses ----------',
@@ -48,6 +51,7 @@ const configureDhcpDaemonCommands = [
         'EOF'
     ].join('\n')
 ];
+
 const restartDhcpServiceCommands = [
     [
         '# ---------- Restart DHCP service ----------',

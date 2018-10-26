@@ -5,6 +5,7 @@ import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import { Promise } from 'bluebird';
 import Listr from 'listr';
+import { HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkBuildRequiredCommands = [
@@ -13,6 +14,14 @@ const checkBuildRequiredCommands = [
         'qm status 1001 1>/dev/null 2>&1'
     ].join('\n')
 ];
+
+const ensureWorkingDirectoriesCommands = [
+    [
+        '# ---------- Ensure that working directories exist ----------',
+        `mkdir -p ${HOST_SSH_KEYS_DIR}`
+    ].join('\n')
+];
+
 const cloneBaselineTemplateCommands = [
     [
         '# ---------- Copy the baseline template ----------',
@@ -22,7 +31,7 @@ const cloneBaselineTemplateCommands = [
     [
         '# ---------- Configure the template with ip address and ssh key ----------',
         [
-            'qm set 1001 --ciuser kube --sshkey ~/.ssh/id_rsa_template.pub',
+            `qm set 1001 --ciuser kube --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_template.pub`,
             '--ipconfig0 ip=10.0.0.11/24,gw=10.0.0.1 --nameserver 8.8.8.8'
         ].join(' ')
     ].join('\n'),
@@ -40,7 +49,7 @@ const cloneBaselineTemplateCommands = [
 const installSoftwareCommands = [
     [
         '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
-        "ssh -o 'StrictHostKeyChecking no' -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
+        `ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'`,
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
@@ -81,7 +90,7 @@ const installSoftwareCommands = [
 const cleanupTemplateCommands = [
     [
         '# ---------- Clean up instance and prep for conversion to template ----------',
-        "ssh -o 'StrictHostKeyChecking no' -i ~/.ssh/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
+        "ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
@@ -143,7 +152,7 @@ const cleanupTemplateCommands = [
 
     [
         '# ---------- Reset ssh keys and ip configuration for the template ----------',
-        'qm set 1001 --sshkeys ~/_pca_working/keys/nokey --ipconfig0 ip=dhcp'
+        `qm set 1001 --sshkeys ${HOST_SSH_KEYS_DIR}/nokey --ipconfig0 ip=dhcp`
     ].join('\n')
 ];
 
@@ -194,6 +203,29 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     logger.warn('Template already exists');
                                     ctx.skipTemplateBuild = true;
                                 }
+                            });
+                    }
+                },
+                {
+                    title: 'Ensure that working directories exist',
+                    skip,
+                    task: () => {
+                        logger.trace('Ensuring that working directories exist');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(ensureWorkingDirectoriesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error ensuring working directories'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Working directories created (or already exist)'
+                                );
                             });
                     }
                 },

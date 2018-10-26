@@ -4,45 +4,49 @@
 import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import Listr from 'listr';
+import { HOST_IMAGES_DIR, HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkImageDownloadRequiredCommands = [
     [
         '# ---------- Check if the VM image already exists on disk ----------',
-        'stat ~/_pca_working/images/bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1'
+        `stat ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1`
     ].join('\n')
 ];
+
+const ensureWorkingDirectoriesCommands = [
+    [
+        '# ---------- Ensure that working directories exist ----------',
+        `mkdir -p ${HOST_SSH_KEYS_DIR}`,
+        `mkdir -p ${HOST_IMAGES_DIR}`
+    ].join('\n')
+];
+
 const checkTemporarySshKeysRequiredCommands = [
     [
         '# ---------- Check if the VM image already exists on disk ----------',
-        'stat ~/.ssh/id_rsa_template 1>/dev/null 2>&1'
+        `stat ${HOST_SSH_KEYS_DIR}/id_rsa_template 1>/dev/null 2>&1`
     ].join('\n')
 ];
+
 const downloadImageCommands = [
-    [
-        '# ---------- Ensure working directory ----------',
-        'mkdir -p ~/_pca_working/images'
-    ].join('\n'),
     [
         '# ---------- Download the VM image from Ubuntu ----------',
         [
             'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img',
-            '-O ~/_pca_working/images/bionic-server-cloudimg-amd64.img'
+            `-O ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
         ].join(' ')
     ].join('\n')
 ];
+
 const createTemporarySshKeysCommands = [
     [
         '# ---------- Generate SSH keys for the template ----------',
-        "ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ~/.ssh/id_rsa_template -N ''"
-    ].join('\n'),
-    [
-        '# ---------- Ensure working directory ----------',
-        'mkdir -p ~/_pca_working/keys'
+        `ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ${HOST_SSH_KEYS_DIR}/id_rsa_template -N ''`
     ].join('\n'),
     [
         '# ---------- Generate empty ssh key (required to remove ssh keys from cloud init) ----------',
-        ["cat <<'EOF' > ~/_pca_working/keys/nokey", '', 'EOF'].join('\n')
+        [`cat <<'EOF' > ${HOST_SSH_KEYS_DIR}/nokey`, '', 'EOF'].join('\n')
     ].join('\n')
 ];
 
@@ -109,6 +113,28 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     );
                                     ctx.skipTemporaryKeyCreation = true;
                                 }
+                            });
+                    }
+                },
+                {
+                    title: 'Ensure that working directories exist',
+                    task: () => {
+                        logger.trace('Ensuring that working directories exist');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(ensureWorkingDirectoriesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error ensuring working directories'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Working directories created (or already exist)'
+                                );
                             });
                     }
                 },

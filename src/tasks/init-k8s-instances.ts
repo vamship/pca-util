@@ -5,6 +5,7 @@ import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import { Promise } from 'bluebird';
 import Listr from 'listr';
+import { HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkInstancesRequiredCommands = [
@@ -13,24 +14,33 @@ const checkInstancesRequiredCommands = [
         'qm status 401 1>/dev/null 2>&1'
     ].join('\n')
 ];
+
+const ensureWorkingDirectoriesCommands = [
+    [
+        '# ---------- Ensure that working directories exist ----------',
+        `mkdir -p ${HOST_SSH_KEYS_DIR}`
+    ].join('\n')
+];
+
 const createSshKeysCommands = [
     [
         '# ---------- Generate SSH key for master ----------',
-        "ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ~/.ssh/id_rsa_k8s_master -N ''"
+        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master -N ''`
     ].join('\n'),
     [
         '# ---------- Generate SSH key for node 1 ----------',
-        "ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ~/.ssh/id_rsa_k8s_node_1 -N ''"
+        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1 -N ''`
     ].join('\n'),
     [
         '# ---------- Generate SSH key for node 2 ----------',
-        "ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ~/.ssh/id_rsa_k8s_node_2 -N ''"
+        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2 -N ''`
     ].join('\n'),
     [
         '# ---------- Generate SSH key for node 3 ----------',
-        "ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ~/.ssh/id_rsa_k8s_node_3 -N ''"
+        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3 -N ''`
     ].join('\n')
 ];
+
 const createSshConfigCommands = [
     [
         '# ---------- Create SSH config for easy SSH into the cluster ----------',
@@ -39,33 +49,34 @@ const createSshConfigCommands = [
         '    HostName 10.0.0.64',
         '    Port 22',
         '    User kube',
-        '    IdentityFile ~/.ssh/id_rsa_k8s_master',
+        `    IdentityFile ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master`,
         '    StrictHostKeyChecking no',
         '',
         'Host k8s-node-1',
         '    HostName 10.0.0.65',
         '    Port 22',
         '    User kube',
-        '    IdentityFile ~/.ssh/id_rsa_k8s_node_1',
+        `    IdentityFile ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1`,
         '    StrictHostKeyChecking no',
         '',
         'Host k8s-node-2',
         '    HostName 10.0.0.65',
         '    Port 22',
         '    User kube',
-        '    IdentityFile ~/.ssh/id_rsa_k8s_node_2',
+        `    IdentityFile ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2`,
         '    StrictHostKeyChecking no',
         '',
         'Host k8s-node-3',
         '    HostName 10.0.0.65',
         '    Port 22',
         '    User kube',
-        '    IdentityFile ~/.ssh/id_rsa_k8s_node_3',
+        `    IdentityFile ${HOST_SSH_KEYS_DIR}/id_rsa_k8snode_3`,
         '    StrictHostKeyChecking no',
         '',
         'EOF'
     ].join('\n')
 ];
+
 const createMasterAndNodeInstancesCommands = [
     [
         '# ---------- Create the master and node instances ----------',
@@ -78,22 +89,22 @@ const createMasterAndNodeInstancesCommands = [
     [
         '# ---------- Set cloud init parameters on the master (default user, ssh keys, static ip) ----------',
         [
-            'qm set 401 --sshkey ~/.ssh/id_rsa_k8s_master.pub',
+            `qm set 401 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master.pub`,
             '--ipconfig0 ip=10.0.0.64/24,gw=10.0.0.1 --nameserver 8.8.8.8',
             '--memory 6144 --cores 2'
         ].join(' '),
         [
-            'qm set 402 --sshkey ~/.ssh/id_rsa_k8s_node_1.pub',
+            `qm set 402 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1.pub`,
             '--ipconfig0 ip=10.0.0.65/24,gw=10.0.0.1 --nameserver 8.8.8.8',
             '--memory 6144 --cores 2'
         ].join(' '),
         [
-            'qm set 403 --sshkey ~/.ssh/id_rsa_k8s_node_2.pub',
+            `qm set 403 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2.pub`,
             '--ipconfig0 ip=10.0.0.66/24,gw=10.0.0.1 --nameserver 8.8.8.8',
             '--memory 6144 --cores 2'
         ].join(' '),
         [
-            'qm set 404 --sshkey ~/.ssh/id_rsa_k8s_node_3.pub',
+            `qm set 404 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3.pub`,
             '--ipconfig0 ip=10.0.0.67/24,gw=10.0.0.1 --nameserver 8.8.8.8',
             '--memory 6144 --cores 1'
         ].join(' ')
@@ -152,6 +163,29 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     );
                                     ctx.skipInstanceCreation = true;
                                 }
+                            });
+                    }
+                },
+                {
+                    title: 'Ensure that working directories exist',
+                    skip,
+                    task: () => {
+                        logger.trace('Ensuring that working directories exist');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(ensureWorkingDirectoriesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error ensuring working directories'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Working directories created (or already exist)'
+                                );
                             });
                     }
                 },

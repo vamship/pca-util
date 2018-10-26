@@ -67,8 +67,13 @@ describe('[configure-k8s-cluster task]', () => {
             'Configure a kubernetes cluster on existing instances';
         const subTaskList = [
             {
+                title: 'Ensure that working directories exist',
+                commandCount: 1,
+                eatError: false
+            },
+            {
                 title: 'Create CA certs for the cluster',
-                commandCount: 3,
+                commandCount: 2,
                 eatError: false,
                 nonSshTask: false
             }

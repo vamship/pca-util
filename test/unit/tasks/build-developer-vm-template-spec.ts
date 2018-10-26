@@ -75,6 +75,11 @@ describe('[build-developer-vm-template task]', () => {
                 eatError: true
             },
             {
+                title: 'Ensure that working directories exist',
+                commandCount: 1,
+                eatError: false
+            },
+            {
                 title: 'Clone and configure baseline template',
                 commandCount: 4,
                 eatError: false

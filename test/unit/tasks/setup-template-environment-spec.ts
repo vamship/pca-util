@@ -65,6 +65,11 @@ describe('[setup-template-environment task]', () => {
                 eatError: true
             },
             {
+                title: 'Ensure that working directories exist',
+                commandCount: 1,
+                eatError: false
+            },
+            {
                 title: 'Download template image',
                 commandCount: 1,
                 eatError: false
@@ -124,6 +129,7 @@ describe('[setup-template-environment task]', () => {
         const skipFlags = [
             'skipTemplateImageDownload',
             'skipTemporaryKeyCreation',
+            '__NOT_APPLICABLE__',
             'skipTemplateImageDownload',
             'skipTemporaryKeyCreation'
         ];
@@ -178,7 +184,7 @@ describe('[setup-template-environment task]', () => {
                             expect(ctx[skipFlag]).to.be.true;
                         });
                     });
-                } else {
+                } else if (index > 3) {
                     describe('[skip]', () => {
                         function _execSkip(
                             args: object = {},
