@@ -9,7 +9,7 @@ import { IRemoteHostInfo, ITaskDefinition } from '../types';
 const checkImageDownloadRequiredCommands = [
     [
         '# ---------- Check if the VM image already exists on disk ----------',
-        'stat bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1'
+        'stat ~/_pca_working/images/bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1'
     ].join('\n')
 ];
 const checkTemporarySshKeysRequiredCommands = [
@@ -20,8 +20,15 @@ const checkTemporarySshKeysRequiredCommands = [
 ];
 const downloadImageCommands = [
     [
+        '# ---------- Ensure working directory ----------',
+        'mkdir -p ~/_pca_working/images'
+    ].join('\n'),
+    [
         '# ---------- Download the VM image from Ubuntu ----------',
-        'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img'
+        [
+            'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img',
+            '-O ~/_pca_working/images/bionic-server-cloudimg-amd64.img'
+        ].join(' ')
     ].join('\n')
 ];
 const createTemporarySshKeysCommands = [
@@ -30,8 +37,12 @@ const createTemporarySshKeysCommands = [
         "ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ~/.ssh/id_rsa_template -N ''"
     ].join('\n'),
     [
+        '# ---------- Ensure working directory ----------',
+        'mkdir -p ~/_pca_working/keys'
+    ].join('\n'),
+    [
         '# ---------- Generate empty ssh key (required to remove ssh keys from cloud init) ----------',
-        ["cat <<'EOF' > nokey", '', 'EOF'].join('\n')
+        ["cat <<'EOF' > ~/_pca_working/keys/nokey", '', 'EOF'].join('\n')
     ].join('\n')
 ];
 

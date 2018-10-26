@@ -143,7 +143,7 @@ const cleanupTemplateCommands = [
 
     [
         '# ---------- Reset ssh keys and ip configuration for the template ----------',
-        'qm set 1001 --sshkeys ./nokey --ipconfig0 ip=dhcp'
+        'qm set 1001 --sshkeys ~/_pca_working/keys/nokey --ipconfig0 ip=dhcp'
     ].join('\n')
 ];
 

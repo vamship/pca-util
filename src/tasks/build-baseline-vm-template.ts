@@ -24,7 +24,7 @@ const createVmCommands = [
     ].join('\n'),
     [
         '# ---------- Import the disk image into the VM ----------',
-        'qm importdisk 1000 bionic-server-cloudimg-amd64.img local-lvm'
+        'qm importdisk 1000 ~/_pca_working/images/bionic-server-cloudimg-amd64.img local-lvm'
     ].join('\n'),
     [
         '# ---------- Set the imported image as scsi0 ----------',

@@ -9,7 +9,7 @@ import { IRemoteHostInfo, ITaskDefinition } from '../types';
 const deleteImageCommands = [
     [
         '# ---------- Delete downloaded VM image ----------',
-        'rm -f bionic-server-cloudimg-amd64.img'
+        'rm -f _pca_working/images/bionic-server-cloudimg-amd64.img'
     ].join('\n')
 ];
 const deleteTemporarySshKeysCommands = [
