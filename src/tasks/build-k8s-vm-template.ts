@@ -90,7 +90,7 @@ const installSoftwareCommands = [
 const cleanupTemplateCommands = [
     [
         '# ---------- Clean up instance and prep for conversion to template ----------',
-        "ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'",
+        `ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.11 <<'END_SCRIPT'`,
         "sudo su <<'END_SUDO'",
         '',
         '# ---------- Echo commands ----------',
