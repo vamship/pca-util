@@ -26,3 +26,8 @@ export const HOST_CERTS_DIR = `${HOST_WORKING_DIR}/certs`;
  * Path to the certs directory on the host.
  */
 export const HOST_SSH_KEYS_DIR = `${HOST_HOME_DIR}/.ssh`;
+
+/**
+ * Path to the certs directory on the host.
+ */
+export const HOST_TEMP_DIR = `${HOST_WORKING_DIR}/temp`;
