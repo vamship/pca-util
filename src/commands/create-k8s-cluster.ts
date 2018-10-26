@@ -2,6 +2,7 @@
  * @module root.commands.configureHost
  */
 import Listr from 'listr';
+import { getTask as _getConfigureK8sClusterTask } from '../tasks/configure-k8s-cluster';
 import { getTask as _getInitK8sInstancesTask } from '../tasks/init-k8s-instances';
 import { IRemoteHostInfo } from '../types';
 
@@ -53,5 +54,8 @@ export const handler = (argv) => {
         privateKey
     };
 
-    return new Listr([_getInitK8sInstancesTask(hostInfo)]).run();
+    return new Listr([
+        _getInitK8sInstancesTask(hostInfo),
+        _getConfigureK8sClusterTask(hostInfo)
+    ]).run();
 };

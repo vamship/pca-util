@@ -63,7 +63,7 @@ describe('[create-k8s-cluster command]', () => {
 
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
-        ['init-k8s-instances'].forEach((mockName) => {
+        ['init-k8s-instances', 'configure-k8s-cluster'].forEach((mockName) => {
             _taskMocks[mockName] = new ObjectMock().addMock('getTask', () => {
                 return _taskMocks[mockName].__taskDefinition;
             });
@@ -76,6 +76,10 @@ describe('[create-k8s-cluster command]', () => {
         _commandModule.__set__(
             'init_k8s_instances_1',
             _taskMocks['init-k8s-instances'].instance
+        );
+        _commandModule.__set__(
+            'configure_k8s_cluster_1',
+            _taskMocks['configure-k8s-cluster'].instance
         );
     });
 
