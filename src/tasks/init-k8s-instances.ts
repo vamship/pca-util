@@ -1,5 +1,5 @@
 /**
- * @module root.tasks.setupTemplateEnvironment
+ * @module root.tasks.initK8sInstances
  */
 import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
