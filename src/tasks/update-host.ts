@@ -35,10 +35,7 @@ const updateHostCommands = [
     'apt -y dist-upgrade'
 ];
 
-const rebootCommands = [
-    '# ---------- Reboot ----------',
-    'reboot now'
-];
+const rebootCommands = ['# ---------- Reboot ----------', 'reboot now'];
 
 /**
  * Returns a task that can be used to perform system updates on the remote host.
