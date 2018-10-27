@@ -184,7 +184,7 @@ describe('[setup-template-environment task]', () => {
                             expect(ctx[skipFlag]).to.be.true;
                         });
                     });
-                } else if (index > 3) {
+                } else if (index > 2) {
                     describe('[skip]', () => {
                         function _execSkip(
                             args: object = {},

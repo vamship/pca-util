@@ -170,7 +170,9 @@ describe('[build-developer-vm-template task]', () => {
                             execSubTask,
                             getSshClientMock
                         );
-                    } else if (index === 2) {
+                    } else {
+                        // The assumption is that the only non ssh task is the
+                        // wait task.
                         it('should return a promise when invoked', () => {
                             const ret = execSubTask();
 

@@ -157,7 +157,9 @@ describe('[init-k8s-instances task]', () => {
                             execSubTask,
                             getSshClientMock
                         );
-                    } else if (index === 4) {
+                    } else {
+                        // The assumption is that the only non ssh task is the
+                        // wait task.
                         it('should return a promise when invoked', () => {
                             const ret = execSubTask();
 
