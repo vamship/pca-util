@@ -32,27 +32,17 @@ describe('[configure-k8s-cluster task]', () => {
 
     let _listrMock;
     let _sshClientMock;
-    let _promiseMock;
     // const VM_STARTUP_WAIT_TIME = 180000;
 
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
         _sshClientMock = new ObjectMock().addPromiseMock('run');
-        _promiseMock = new ObjectMock().addMock('delay', () => {
-            return _promiseMock.__delayPromise;
-        });
-        _promiseMock.__delayPromise = {
-            then: () => true
-        };
 
         _taskModule.__set__('listr_1', {
             default: _listrMock.ctor
         });
         _taskModule.__set__('ssh_utils_1', {
             SshClient: _sshClientMock.ctor
-        });
-        _taskModule.__set__('bluebird_1', {
-            Promise: _promiseMock.instance
         });
     });
 
@@ -74,8 +64,32 @@ describe('[configure-k8s-cluster task]', () => {
             {
                 title: 'Create CA certs for the cluster',
                 commandCount: 4,
-                eatError: false,
-                nonSshTask: false
+                eatError: false
+            },
+            {
+                title: 'Gather security information for the cluster',
+                commandCount: 4,
+                eatError: false
+            },
+            {
+                title: 'Configure cluster master',
+                commandCount: 7,
+                eatError: false
+            },
+            {
+                title: 'Configure node 1',
+                commandCount: 6,
+                eatError: false
+            },
+            {
+                title: 'Configure node 2',
+                commandCount: 6,
+                eatError: false
+            },
+            {
+                title: 'Configure node 3',
+                commandCount: 6,
+                eatError: false
             }
         ];
 
@@ -124,41 +138,18 @@ describe('[configure-k8s-cluster task]', () => {
             });
         });
 
-        subTaskList.forEach(
-            ({ title, commandCount, eatError, nonSshTask }, index) => {
-                describe(`[sub task: ${title}]`, () => {
-                    const execSubTask = _getSubTaskRunner(index);
-                    const getSshClientMock = () => _sshClientMock;
+        subTaskList.forEach(({ title, commandCount, eatError }, index) => {
+            describe(`[sub task: ${title}]`, () => {
+                const execSubTask = _getSubTaskRunner(index);
+                const getSshClientMock = () => _sshClientMock;
 
-                    if (!nonSshTask) {
-                        injectSshSubTaskSuite(
-                            commandCount,
-                            eatError,
-                            execSubTask,
-                            getSshClientMock
-                        );
-                    } else if (index === 4) {
-                        // it('should return a promise when invoked', () => {
-                        //     const ret = execSubTask();
-                        //     expect(ret).to.be.an('object');
-                        //     expect(ret.then).to.be.a('function');
-                        // });
-                        // it('should invoke the delay method to introduce a delay', () => {
-                        //     const delayMethod = _promiseMock.mocks.delay;
-                        //     expect(delayMethod.stub).to.not.have.been.called;
-                        //     execSubTask();
-                        //     expect(delayMethod.stub).to.have.been.calledOnce;
-                        //     expect(delayMethod.stub).to.have.been.calledWith(
-                        //         VM_STARTUP_WAIT_TIME
-                        //     );
-                        // });
-                        // it('should return the promise from the delay method', () => {
-                        //     const ret = execSubTask();
-                        //     expect(ret).to.equal(_promiseMock.__delayPromise);
-                        // });
-                    }
-                });
-            }
-        );
+                injectSshSubTaskSuite(
+                    commandCount,
+                    eatError,
+                    execSubTask,
+                    getSshClientMock
+                );
+            });
+        });
     });
 });
