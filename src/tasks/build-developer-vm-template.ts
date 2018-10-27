@@ -9,46 +9,35 @@ import { HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkBuildRequiredCommands = [
-    [
-        '# ---------- Check if baseline template already exists ----------',
-        'qm status 1002 1>/dev/null 2>&1'
-    ].join('\n')
+    '# ---------- Check if baseline template already exists ----------',
+    'qm status 1002 1>/dev/null 2>&1'
 ];
 
 const ensureWorkingDirectoriesCommands = [
-    [
-        '# ---------- Ensure that working directories exist ----------',
-        `mkdir -p ${HOST_SSH_KEYS_DIR}`
-    ].join('\n')
+    '# ---------- Ensure that working directories exist ----------',
+    `mkdir -p ${HOST_SSH_KEYS_DIR}`
 ];
 
 const cloneBaselineTemplateCommands = [
-    [
-        '# ---------- Copy the baseline template ----------',
-        'qm clone 1000 1002 --name developer-node'
-    ].join('\n'),
+    '# ---------- Copy the baseline template ----------',
+    'qm clone 1000 1002 --name developer-node',
 
+    '# ---------- Configure the template with ip address and ssh key ----------',
     [
-        '# ---------- Configure the template with ip address and ssh key ----------',
-        [
-            `qm set 1002 --ciuser kube --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_template.pub`,
-            '--ipconfig0 ip=10.0.0.12/24,gw=10.0.0.1 --nameserver 8.8.8.8'
-        ].join(' ')
-    ].join('\n'),
+        `qm set 1002 --ciuser kube --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_template.pub`,
+        '--ipconfig0 ip=10.0.0.12/24,gw=10.0.0.1 --nameserver 8.8.8.8'
+    ].join(' '),
 
-    ['# ---------- Resize disk ----------', 'qm resize 1002 scsi0 +8G'].join(
-        '\n'
-    ),
+    '# ---------- Resize disk ----------',
+    'qm resize 1002 scsi0 +8G',
 
-    [
-        '# ---------- Start an instance of the template ----------',
-        'qm start 1002'
-    ].join('\n')
+    '# ---------- Start an instance of the template ----------',
+    'qm start 1002'
 ];
 
 const installSoftwareCommands = [
+    '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
     [
-        '# ---------- Install docker, kubectl, kubeadm and kubelet ----------',
         `ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'`,
         "sudo su <<'END_SUDO'",
         '',
@@ -88,6 +77,7 @@ const installSoftwareCommands = [
 ];
 
 const installDeveloperToolsCommands = [
+    '# ---------- Install developer tools ----------',
     [
         '# ---------- Setup shell and vi ----------',
         `ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'`,
@@ -131,8 +121,8 @@ const installDeveloperToolsCommands = [
 ];
 
 const cleanupTemplateCommands = [
+    '# ---------- Clean up instance and prep for conversion to template ----------',
     [
-        '# ---------- Clean up instance and prep for conversion to template ----------',
         `ssh -o 'StrictHostKeyChecking no' -i ${HOST_SSH_KEYS_DIR}/id_rsa_template kube@10.0.0.12 <<'END_SCRIPT'`,
         "sudo su <<'END_SUDO'",
         '',
@@ -189,21 +179,16 @@ const cleanupTemplateCommands = [
         'END_SCRIPT'
     ].join('\n'),
 
-    ['# ---------- Shutdown the instance ----------', 'qm shutdown 1002'].join(
-        '\n'
-    ),
+    '# ---------- Shutdown the instance ----------',
+    'qm shutdown 1002',
 
-    [
-        '# ---------- Reset ssh keys and ip configuration for the template ----------',
-        `qm set 1002 --sshkeys ${HOST_SSH_KEYS_DIR}/nokey --ipconfig0 ip=dhcp`
-    ].join('\n')
+    '# ---------- Reset ssh keys and ip configuration for the template ----------',
+    `qm set 1002 --sshkeys ${HOST_SSH_KEYS_DIR}/nokey --ipconfig0 ip=dhcp`
 ];
 
 const convertToTemplateCommands = [
-    [
-        '# ---------- Convert the VM into a template ----------',
-        'qm template 1002'
-    ].join('\n')
+    '# ---------- Convert the VM into a template ----------',
+    'qm template 1002'
 ];
 
 /**

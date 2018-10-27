@@ -64,22 +64,22 @@ describe('[update-host task]', () => {
         const subTaskList = [
             {
                 title: 'Update apt source list',
-                commandCount: 2,
+                commandCount: 4,
                 eatError: false
             },
             {
                 title: 'Download proxmox gpg key',
-                commandCount: 1,
-                eatError: false
-            },
-            {
-                title: 'Upgrade host system',
                 commandCount: 2,
                 eatError: false
             },
             {
+                title: 'Upgrade host system',
+                commandCount: 4,
+                eatError: false
+            },
+            {
                 title: 'Request system reboot',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {

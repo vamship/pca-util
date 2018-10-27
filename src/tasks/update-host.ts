@@ -8,37 +8,36 @@ import _waitOn from 'wait-on';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const updateAptSourceListCommands = [
+    '# ---------- Remove existing sources ----------',
+    'rm -f /etc/apt/sources.list.d/*',
+
+    '# ---------- Configure the no subscription source ----------',
     [
-        '# ---------- Remove existing sources ----------',
-        'rm -f /etc/apt/sources.list.d/*'
-    ].join('\n'),
-    [
-        '# ---------- Configure the no subscription source ----------',
-        [
-            'echo',
-            '"deb http://download.proxmox.com/debian/pve stretch pve-no-subscription"',
-            '> /etc/apt/sources.list.d/pve-install-repo.list'
-        ].join(' ')
-    ].join('\n')
+        'echo',
+        '"deb http://download.proxmox.com/debian/pve stretch pve-no-subscription"',
+        '> /etc/apt/sources.list.d/pve-install-repo.list'
+    ].join(' ')
 ];
 
 const downloadProxmoxCommands = [
+    '# ---------- Get GPG key ----------',
     [
-        '# ---------- Get GPG key ----------',
-        [
-            'wget http://download.proxmox.com/debian/proxmox-ve-release-5.x.gpg',
-            '-O /etc/apt/trusted.gpg.d/proxmox-ve-release-5.x.gpg'
-        ].join(' ')
-    ].join('\n')
+        'wget http://download.proxmox.com/debian/proxmox-ve-release-5.x.gpg',
+        '-O /etc/apt/trusted.gpg.d/proxmox-ve-release-5.x.gpg'
+    ].join(' ')
 ];
 
 const updateHostCommands = [
-    ['# ---------- Update apt ----------', 'apt update'].join('\n'),
-    ['# ---------- Upgrade host ----------', 'apt -y dist-upgrade'].join('\n')
+    '# ---------- Update apt ----------',
+    'apt update',
+
+    '# ---------- Upgrade host ----------',
+    'apt -y dist-upgrade'
 ];
 
 const rebootCommands = [
-    ['# ---------- Reboot ----------', 'reboot now'].join('\n')
+    '# ---------- Reboot ----------',
+    'reboot now'
 ];
 
 /**

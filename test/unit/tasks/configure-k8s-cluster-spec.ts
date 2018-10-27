@@ -68,12 +68,12 @@ describe('[configure-k8s-cluster task]', () => {
         const subTaskList = [
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 3,
                 eatError: false
             },
             {
                 title: 'Create CA certs for the cluster',
-                commandCount: 2,
+                commandCount: 4,
                 eatError: false,
                 nonSshTask: false
             }

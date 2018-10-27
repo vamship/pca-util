@@ -56,17 +56,17 @@ describe('[cleanup-template-environment task]', () => {
         const subTaskList = [
             {
                 title: 'Delete downloaded template image',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Delete temporary ssh keys',
-                commandCount: 1,
+                commandCount: 3,
                 eatError: false
             },
             {
                 title: 'Clean up entries in known_hosts file',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             }
         ];

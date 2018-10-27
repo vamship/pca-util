@@ -71,17 +71,17 @@ describe('[build-k8s-vm-template task]', () => {
         const subTaskList = [
             {
                 title: 'Check if k8s template build is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Clone and configure baseline template',
-                commandCount: 4,
+                commandCount: 8,
                 eatError: false
             },
             {
@@ -92,17 +92,17 @@ describe('[build-k8s-vm-template task]', () => {
             },
             {
                 title: 'Install docker, kubectl, kubeadm and kubelet',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Clean up template; prep for conversion to template',
-                commandCount: 3,
+                commandCount: 6,
                 eatError: false
             },
             {
                 title: 'Convert VM into template',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             }
         ];

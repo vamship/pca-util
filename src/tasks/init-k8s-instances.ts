@@ -9,41 +9,27 @@ import { HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkInstancesRequiredCommands = [
-    [
-        '# ---------- Check if the any of the kubernetes nodes have been created ----------',
-        'qm status 401 1>/dev/null 2>&1'
-    ].join('\n')
+    '# ---------- Check if the any of the kubernetes nodes have been created ----------',
+    'qm status 401 1>/dev/null 2>&1'
 ];
 
 const ensureWorkingDirectoriesCommands = [
-    [
-        '# ---------- Ensure that working directories exist ----------',
-        `mkdir -p ${HOST_SSH_KEYS_DIR}`
-    ].join('\n')
+    '# ---------- Ensure that working directories exist ----------',
+    `mkdir -p ${HOST_SSH_KEYS_DIR}`
 ];
 
 const createSshKeysCommands = [
-    [
-        '# ---------- Generate SSH key for master ----------',
-        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master -N ''`
-    ].join('\n'),
-    [
-        '# ---------- Generate SSH key for node 1 ----------',
-        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1 -N ''`
-    ].join('\n'),
-    [
-        '# ---------- Generate SSH key for node 2 ----------',
-        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2 -N ''`
-    ].join('\n'),
-    [
-        '# ---------- Generate SSH key for node 3 ----------',
-        `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3 -N ''`
-    ].join('\n')
+    '# ---------- Generate SSH key for master and nodes ----------',
+
+    `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master -N ''`,
+    `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1 -N ''`,
+    `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2 -N ''`,
+    `ssh-keygen -t rsa -b 4096 -C 'kube@k8s' -f ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3 -N ''`
 ];
 
 const createSshConfigCommands = [
+    '# ---------- Create SSH config for easy SSH into the cluster ----------',
     [
-        '# ---------- Create SSH config for easy SSH into the cluster ----------',
         "cat <<'EOF' >> ~/.ssh/config",
         'Host k8s-master',
         '    HostName 10.0.0.64',
@@ -78,45 +64,39 @@ const createSshConfigCommands = [
 ];
 
 const createMasterAndNodeInstancesCommands = [
-    [
-        '# ---------- Create the master and node instances ----------',
-        'qm clone 1001 401 --name k8s-master',
-        'qm clone 1001 402 --name k8s-node-1',
-        'qm clone 1001 403 --name k8s-node-2',
-        'qm clone 1001 404 --name k8s-node-3'
-    ].join('\n'),
+    '# ---------- Create the master and node instances ----------',
+    'qm clone 1001 401 --name k8s-master',
+    'qm clone 1001 402 --name k8s-node-1',
+    'qm clone 1001 403 --name k8s-node-2',
+    'qm clone 1001 404 --name k8s-node-3',
 
+    '# ---------- Set cloud init parameters on the master (default user, ssh keys, static ip) ----------',
     [
-        '# ---------- Set cloud init parameters on the master (default user, ssh keys, static ip) ----------',
-        [
-            `qm set 401 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master.pub`,
-            '--ipconfig0 ip=10.0.0.64/24,gw=10.0.0.1 --nameserver 8.8.8.8',
-            '--memory 6144 --cores 2'
-        ].join(' '),
-        [
-            `qm set 402 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1.pub`,
-            '--ipconfig0 ip=10.0.0.65/24,gw=10.0.0.1 --nameserver 8.8.8.8',
-            '--memory 6144 --cores 2'
-        ].join(' '),
-        [
-            `qm set 403 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2.pub`,
-            '--ipconfig0 ip=10.0.0.66/24,gw=10.0.0.1 --nameserver 8.8.8.8',
-            '--memory 6144 --cores 2'
-        ].join(' '),
-        [
-            `qm set 404 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3.pub`,
-            '--ipconfig0 ip=10.0.0.67/24,gw=10.0.0.1 --nameserver 8.8.8.8',
-            '--memory 6144 --cores 1'
-        ].join(' ')
-    ].join('\n'),
+        `qm set 401 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_master.pub`,
+        '--ipconfig0 ip=10.0.0.64/24,gw=10.0.0.1 --nameserver 8.8.8.8',
+        '--memory 6144 --cores 2'
+    ].join(' '),
+    [
+        `qm set 402 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_1.pub`,
+        '--ipconfig0 ip=10.0.0.65/24,gw=10.0.0.1 --nameserver 8.8.8.8',
+        '--memory 6144 --cores 2'
+    ].join(' '),
+    [
+        `qm set 403 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_2.pub`,
+        '--ipconfig0 ip=10.0.0.66/24,gw=10.0.0.1 --nameserver 8.8.8.8',
+        '--memory 6144 --cores 2'
+    ].join(' '),
+    [
+        `qm set 404 --sshkey ${HOST_SSH_KEYS_DIR}/id_rsa_k8s_node_3.pub`,
+        '--ipconfig0 ip=10.0.0.67/24,gw=10.0.0.1 --nameserver 8.8.8.8',
+        '--memory 6144 --cores 1'
+    ].join(' '),
 
-    [
-        '# ---------- Start the instances ----------',
-        'qm start 401',
-        'qm start 402',
-        'qm start 403',
-        'qm start 404'
-    ].join('\n')
+    '# ---------- Start the instances ----------',
+    'qm start 401',
+    'qm start 402',
+    'qm start 403',
+    'qm start 404'
 ];
 
 /**

@@ -56,17 +56,17 @@ describe('[configure-nat task]', () => {
         const subTaskList = [
             {
                 title: 'Check if NAT configuration is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Add linux bridge config and NAT settings',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Restart networking service',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             }
         ];

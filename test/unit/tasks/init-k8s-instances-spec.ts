@@ -67,27 +67,27 @@ describe('[init-k8s-instances task]', () => {
         const subTaskList = [
             {
                 title: 'Check if instances have to be created',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Create SSH keys for instances',
-                commandCount: 4,
+                commandCount: 5,
                 eatError: false
             },
             {
                 title: 'Create SSH config for easy SSH to instances',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Create master and node instances',
-                commandCount: 3,
+                commandCount: 15,
                 eatError: false
             },
             {

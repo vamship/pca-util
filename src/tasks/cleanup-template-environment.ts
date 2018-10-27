@@ -8,23 +8,17 @@ import { HOST_IMAGES_DIR, HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const deleteImageCommands = [
-    [
-        '# ---------- Delete downloaded VM image ----------',
-        `rm -f ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
-    ].join('\n')
+    '# ---------- Delete downloaded VM image ----------',
+    `rm -f ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
 ];
 const deleteTemporarySshKeysCommands = [
-    [
-        '# ---------- Delete temporary ssh keys ----------',
-        `rm -f ${HOST_SSH_KEYS_DIR}/id_rsa_template*`,
-        `rm -f ${HOST_SSH_KEYS_DIR}/nokey`
-    ].join('\n')
+    '# ---------- Delete temporary ssh keys ----------',
+    `rm -f ${HOST_SSH_KEYS_DIR}/id_rsa_template*`,
+    `rm -f ${HOST_SSH_KEYS_DIR}/nokey`
 ];
 const cleanupKnownHostsFileCommands = [
-    [
-        '# ---------- Clean up known_hosts file ----------',
-        'cat /dev/null > ~/.ssh/known_hosts'
-    ].join('\n')
+    '# ---------- Clean up known_hosts file ----------',
+    'cat /dev/null > ~/.ssh/known_hosts'
 ];
 
 /**

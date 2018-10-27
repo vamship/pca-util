@@ -71,17 +71,17 @@ describe('[build-developer-vm-template task]', () => {
         const subTaskList = [
             {
                 title: 'Check if developer template build is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Clone and configure baseline template',
-                commandCount: 4,
+                commandCount: 8,
                 eatError: false
             },
             {
@@ -92,22 +92,22 @@ describe('[build-developer-vm-template task]', () => {
             },
             {
                 title: 'Install kubectl',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Install developer tools',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Clean up template; prep for conversion to template',
-                commandCount: 3,
+                commandCount: 6,
                 eatError: false
             },
             {
                 title: 'Convert VM into template',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             }
         ];

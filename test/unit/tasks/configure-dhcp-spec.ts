@@ -56,27 +56,27 @@ describe('[configure-dhcp task]', () => {
         const subTaskList = [
             {
                 title: 'Check if DHCP configuration is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Install DHCP server',
-                commandCount: 2,
+                commandCount: 4,
                 eatError: false
             },
             {
                 title: 'Configure DHCP server defaults',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Configure DHCP daemon',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Restart DHCP service',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             }
         ];

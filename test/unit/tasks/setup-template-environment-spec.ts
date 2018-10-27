@@ -56,27 +56,27 @@ describe('[setup-template-environment task]', () => {
         const subTaskList = [
             {
                 title: 'Check if template image download is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Check if temporary SSH keys have to be created',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 3,
                 eatError: false
             },
             {
                 title: 'Download template image',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Create temporary SSH keys',
-                commandCount: 2,
+                commandCount: 4,
                 eatError: false
             }
         ];

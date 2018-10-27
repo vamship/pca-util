@@ -55,22 +55,22 @@ describe('[build-baseline-vm-template task]', () => {
         const subTaskList = [
             {
                 title: 'Check if baseline template build is required',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: true
             },
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Create baseline VM',
-                commandCount: 3,
+                commandCount: 6,
                 eatError: false
             },
             {
                 title: 'Convert VM into template',
-                commandCount: 1,
+                commandCount: 2,
                 eatError: false
             }
         ];

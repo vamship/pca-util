@@ -8,46 +8,35 @@ import { HOST_IMAGES_DIR, HOST_SSH_KEYS_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const checkImageDownloadRequiredCommands = [
-    [
-        '# ---------- Check if the VM image already exists on disk ----------',
-        `stat ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1`
-    ].join('\n')
-];
-
-const ensureWorkingDirectoriesCommands = [
-    [
-        '# ---------- Ensure that working directories exist ----------',
-        `mkdir -p ${HOST_SSH_KEYS_DIR}`,
-        `mkdir -p ${HOST_IMAGES_DIR}`
-    ].join('\n')
+    '# ---------- Check if the VM image already exists on disk ----------',
+    `stat ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img 1>/dev/null 2>&1`
 ];
 
 const checkTemporarySshKeysRequiredCommands = [
-    [
-        '# ---------- Check if the VM image already exists on disk ----------',
-        `stat ${HOST_SSH_KEYS_DIR}/id_rsa_template 1>/dev/null 2>&1`
-    ].join('\n')
+    '# ---------- Check if the VM image already exists on disk ----------',
+    `stat ${HOST_SSH_KEYS_DIR}/id_rsa_template 1>/dev/null 2>&1`
+];
+
+const ensureWorkingDirectoriesCommands = [
+    '# ---------- Ensure that working directories exist ----------',
+    `mkdir -p ${HOST_SSH_KEYS_DIR}`,
+    `mkdir -p ${HOST_IMAGES_DIR}`
 ];
 
 const downloadImageCommands = [
+    '# ---------- Download the VM image from Ubuntu ----------',
     [
-        '# ---------- Download the VM image from Ubuntu ----------',
-        [
-            'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img',
-            `-O ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
-        ].join(' ')
-    ].join('\n')
+        'wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img',
+        `-O ${HOST_IMAGES_DIR}/bionic-server-cloudimg-amd64.img`
+    ].join(' ')
 ];
 
 const createTemporarySshKeysCommands = [
-    [
-        '# ---------- Generate SSH keys for the template ----------',
-        `ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ${HOST_SSH_KEYS_DIR}/id_rsa_template -N ''`
-    ].join('\n'),
-    [
-        '# ---------- Generate empty ssh key (required to remove ssh keys from cloud init) ----------',
-        [`cat <<'EOF' > ${HOST_SSH_KEYS_DIR}/nokey`, '', 'EOF'].join('\n')
-    ].join('\n')
+    '# ---------- Generate SSH keys for the template ----------',
+    `ssh-keygen -t rsa -b 4096 -C 'kube@template' -f ${HOST_SSH_KEYS_DIR}/id_rsa_template -N ''`,
+
+    '# ---------- Generate empty ssh key (required to remove ssh keys from cloud init) ----------',
+    [`cat <<'EOF' > ${HOST_SSH_KEYS_DIR}/nokey`, '', 'EOF'].join('\n')
 ];
 
 /**
