@@ -136,7 +136,7 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                     logger.error(err);
                                     throw err;
                                 }
-                                logger.debug('cluster master configured');
+                                logger.debug('Cluster master configured');
                             });
                     }
                 },
