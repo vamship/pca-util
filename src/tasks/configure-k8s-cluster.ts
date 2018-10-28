@@ -4,51 +4,15 @@
 import _loggerProvider from '@vamship/logger';
 import { SshClient } from '@vamship/ssh-utils';
 import Listr from 'listr';
-import { HOST_CERTS_DIR, HOST_TEMP_DIR } from '../consts';
+import { HOST_TEMP_DIR } from '../consts';
 import { IRemoteHostInfo, ITaskDefinition } from '../types';
 
 const ensureWorkingDirectoriesCommands = [
     '# ---------- Ensure that working directories exist ----------',
-    `mkdir -p ${HOST_CERTS_DIR}`,
     `mkdir -p ${HOST_TEMP_DIR}`
 ];
 
-const createCACertCommands = [
-    '# ---------- Create key pair for CA certs ----------',
-    `openssl genrsa -out ${HOST_CERTS_DIR}/ca.key 4096`,
-
-    '# ---------- Generate CA cert from key pair ----------',
-    [
-        'openssl req',
-        `-key ${HOST_CERTS_DIR}/ca.key`,
-        `-out ${HOST_CERTS_DIR}/ca.crt`,
-        '-new -x509',
-        '-days 7300',
-        '-sha256',
-        '-extensions v3_ca',
-        "-subj '/C=US/ST=Massachusetts/L=Boston/CN=K8S CA'"
-    ].join(' ')
-];
-
-const gatherSecurityInfoCommands = [
-    '# ---------- Get cluster join token ----------',
-    `ssh k8s-master 'kubeadm token generate' > ${HOST_TEMP_DIR}/join-token`,
-
-    '# ---------- Get CA cert hash ----------',
-    [
-        `openssl x509 -in ${HOST_CERTS_DIR}/ca.crt -noout -pubkey|`,
-        'openssl rsa -pubin -outform DER 2>/dev/null | sha256sum |',
-        `cut -d' ' -f1 > ${HOST_TEMP_DIR}/ca-cert-hash`
-    ].join(' ')
-];
-
 const configureMasterCommands = [
-    '# ---------- Copy CA certs and other files to master node ----------',
-    `ssh k8s-master 'mkdir -p k8s-setup'`,
-    `scp -r ${HOST_CERTS_DIR} k8s-master:k8s-setup/`,
-    `scp ${HOST_TEMP_DIR}/join-token k8s-master:k8s-setup/`,
-    `scp ${HOST_TEMP_DIR}/ca-cert-hash k8s-master:k8s-setup/`,
-
     '# ---------- Initialize the master using flannel ----------',
     [
         "ssh k8s-master <<'END_SCRIPT'",
@@ -57,37 +21,36 @@ const configureMasterCommands = [
         'set -x',
 
         '# ---------- Initialize the master and configure credentials for kubectl ----------',
-        [
-            'sudo kubeadm init --pod-network-cidr=10.244.0.0/16',
-            '--cert-dir /home/kube/k8s-setup/certs',
-            '--token $(cat /home/kube/k8s-setup/join-token)'
-        ].join(' '),
+        'sudo kubeadm init --pod-network-cidr=10.244.0.0/16',
+
+        '# ---------- Copy credentials to home directory ----------',
+        'mkdir -p $HOME/.kube',
+        'sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config',
+        'sudo chown $(id -u):$(id -g) $HOME/.kube/config',
 
         '# ---------- Configure pod network add on (flannel) ----------',
-        'kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml',
+        // See https://github.com/coreos/flannel/issues/1044
+        // This pull request has been merged, but not published as part of a new
+        // release. Using the original pull request reference is the safest way
+        // to ensure that this configuration is applied consistently
+        [
+            'kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/',
+            'bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml'
+        ].join(''),
 
         'END_SCRIPT'
     ].join('\n')
 ];
 
+const getJoinCommand = [
+    '# ---------- Get cluster join token ----------',
+    `ssh k8s-master 'kubeadm token create --print-join-command'> ${HOST_TEMP_DIR}/join-command`
+];
+
 function _getConfigureNodeCommands(nodeName: string): string[] {
     return [
-        `# ---------- Copy join token and ca hash to node ${nodeName} ----------`,
-        `ssh k8s-${nodeName} 'mkdir -p k8s-setup'`,
-        `scp ${HOST_TEMP_DIR}/join-token k8s-${nodeName}:k8s-setup/`,
-        `scp ${HOST_TEMP_DIR}/ca-cert-hash k8s-${nodeName}:k8s-setup/`,
-
         `# ---------- Join node ${nodeName} to the cluster ----------`,
-        [
-            `ssh k8s-${nodeName} <<'END_SCRIPT'`,
-            [
-                'kubeadm join 10.0.0.64:6443',
-                '--token $(cat /home/kube/k8s-setup/join-token)',
-                '--discovery-token-ca-cert-hash sha256:$(cat /home/kube/k8s-setup/ca-cert-hash)'
-            ].join(' '),
-
-            'END_SCRIPT'
-        ].join('\n')
+        `ssh k8s-${nodeName} "sudo $(cat ${HOST_TEMP_DIR}/join-command)"`
     ];
 }
 
@@ -158,50 +121,6 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                     }
                 },
                 {
-                    title: 'Create CA certs for the cluster',
-                    task: () => {
-                        logger.trace('Create CA certs for the cluster');
-                        const sshClient = new SshClient(hostInfo);
-                        return sshClient
-                            .run(createCACertCommands)
-                            .then((results) => {
-                                logger.trace(results);
-                                if (results.failureCount > 0) {
-                                    const err = new Error(
-                                        'Error creating CA cert'
-                                    );
-                                    logger.error(err);
-                                    throw err;
-                                }
-                                logger.debug(
-                                    'Cluster CA certs for the cluster'
-                                );
-                            });
-                    }
-                },
-                {
-                    title: 'Gather security information for the cluster',
-                    task: () => {
-                        logger.trace(
-                            'Gather security information for the cluster'
-                        );
-                        const sshClient = new SshClient(hostInfo);
-                        return sshClient
-                            .run(gatherSecurityInfoCommands)
-                            .then((results) => {
-                                logger.trace(results);
-                                if (results.failureCount > 0) {
-                                    const err = new Error(
-                                        'Error gathering security information'
-                                    );
-                                    logger.error(err);
-                                    throw err;
-                                }
-                                logger.debug('Security information collected');
-                            });
-                    }
-                },
-                {
                     title: 'Configure cluster master',
                     task: () => {
                         logger.trace('Configure cluster master');
@@ -219,6 +138,24 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                                 }
                                 logger.debug('cluster master configured');
                             });
+                    }
+                },
+                {
+                    title: 'Obtain join command from master',
+                    task: () => {
+                        logger.trace('Obtain join command from master');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient.run(getJoinCommand).then((results) => {
+                            logger.trace(results);
+                            if (results.failureCount > 0) {
+                                const err = new Error(
+                                    'Error obtaining join command from master'
+                                );
+                                logger.error(err);
+                                throw err;
+                            }
+                            logger.debug('Join command obtained from master');
+                        });
                     }
                 },
                 getNodeConfigTask(1),

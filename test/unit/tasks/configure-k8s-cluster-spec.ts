@@ -58,37 +58,32 @@ describe('[configure-k8s-cluster task]', () => {
         const subTaskList = [
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 3,
-                eatError: false
-            },
-            {
-                title: 'Create CA certs for the cluster',
-                commandCount: 4,
-                eatError: false
-            },
-            {
-                title: 'Gather security information for the cluster',
-                commandCount: 4,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Configure cluster master',
-                commandCount: 7,
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Obtain join command from master',
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Configure node 1',
-                commandCount: 6,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Configure node 2',
-                commandCount: 6,
+                commandCount: 2,
                 eatError: false
             },
             {
                 title: 'Configure node 3',
-                commandCount: 6,
+                commandCount: 2,
                 eatError: false
             }
         ];
