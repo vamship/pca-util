@@ -48,3 +48,26 @@ export interface IRemoteHostInfo {
      */
     privateKey?: string;
 }
+
+/**
+ * An extended remote host info object that also includes information that
+ * allows the remote host to be registered with the cloud to enable cloud driven
+ * product and license management.
+ */
+export interface IServerInfo extends IRemoteHostInfo {
+    /**
+     * A unique id for the server.
+     */
+    serverId: string;
+
+    /**
+     * A secret key that uniquely identifies this server to the cloud.
+     */
+    serverSecret: string;
+
+    /**
+     * The endpoint of the cloud server with which a fully registered server
+     * will communicate.
+     */
+    cloudEndpoint: string;
+}

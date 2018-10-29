@@ -3,7 +3,7 @@
  */
 import Listr from 'listr';
 import { getTask as _getCreateClusterSecretsTask } from '../tasks/create-cluster-secrets';
-import { IRemoteHostInfo } from '../types';
+import { IServerInfo } from '../types';
 
 export const command = 'register-server';
 export const describe = 'Register server with cloud';
@@ -66,13 +66,15 @@ export const builder = {
     }
 };
 export const handler = (argv) => {
-    const { host, username, port, password, privateKey } = argv;
-    const hostInfo: IRemoteHostInfo = {
-        host,
-        username,
-        port,
-        password,
-        privateKey
+    const hostInfo: IServerInfo = {
+        host: argv.host,
+        username: argv.username,
+        port: argv.port,
+        password: argv.password,
+        privateKey: argv.privateKey,
+        serverId: argv.serverId,
+        serverSecret: argv.serverSecret,
+        cloudEndpoint: argv.cloudEndpoint
     };
 
     return new Listr([_getCreateClusterSecretsTask(hostInfo)]).run();

@@ -24,6 +24,9 @@ describe('[register-server command]', () => {
         const username = _testValues.getString('username');
         const privateKey = _testValues.getString('privateKey');
         const password = _testValues.getString('password');
+        const serverId = _testValues.getString('serverId');
+        const serverSecret = _testValues.getString('serverSecret');
+        const cloudEndpoint = _testValues.getString('cloudEndpoint');
 
         args = Object.assign(
             {
@@ -31,7 +34,10 @@ describe('[register-server command]', () => {
                 port,
                 username,
                 privateKey,
-                password
+                password,
+                serverId,
+                serverSecret,
+                cloudEndpoint
             },
             args
         );
@@ -176,7 +182,10 @@ describe('[register-server command]', () => {
                 port: _testValues.getNumber(100, 22),
                 username: _testValues.getString('username'),
                 privateKey: _testValues.getString('privateKey'),
-                password: _testValues.getString('password')
+                password: _testValues.getString('password'),
+                serverId: _testValues.getString('serverId'),
+                serverSecret: _testValues.getString('serverSecret'),
+                cloudEndpoint: _testValues.getString('cloudEndpoint')
             };
             const ret = _execHandler(hostInfo);
 
