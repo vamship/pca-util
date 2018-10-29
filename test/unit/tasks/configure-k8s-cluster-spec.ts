@@ -85,6 +85,11 @@ describe('[configure-k8s-cluster task]', () => {
                 title: 'Configure node 3',
                 commandCount: 2,
                 eatError: false
+            },
+            {
+                title: 'Cleanup temporary files',
+                commandCount: 2,
+                eatError: false
             }
         ];
 

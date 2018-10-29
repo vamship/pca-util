@@ -42,9 +42,14 @@ const configureMasterCommands = [
     ].join('\n')
 ];
 
-const getJoinCommand = [
+const getJoinCommands = [
     '# ---------- Get cluster join token ----------',
     `ssh k8s-master 'kubeadm token create --print-join-command'> ${HOST_TEMP_DIR}/join-command`
+];
+
+const cleanupTemporaryFilesCommands = [
+    '# ---------- Cleanup temporary files ----------',
+    `rm -f ${HOST_TEMP_DIR}/join-command`
 ];
 
 function _getConfigureNodeCommands(nodeName: string): string[] {
@@ -145,22 +150,46 @@ export const getTask = (hostInfo: IRemoteHostInfo): ITaskDefinition => {
                     task: () => {
                         logger.trace('Obtain join command from master');
                         const sshClient = new SshClient(hostInfo);
-                        return sshClient.run(getJoinCommand).then((results) => {
-                            logger.trace(results);
-                            if (results.failureCount > 0) {
-                                const err = new Error(
-                                    'Error obtaining join command from master'
+                        return sshClient
+                            .run(getJoinCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error obtaining join command from master'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug(
+                                    'Join command obtained from master'
                                 );
-                                logger.error(err);
-                                throw err;
-                            }
-                            logger.debug('Join command obtained from master');
-                        });
+                            });
                     }
                 },
                 getNodeConfigTask(1),
                 getNodeConfigTask(2),
-                getNodeConfigTask(3)
+                getNodeConfigTask(3),
+                {
+                    title: 'Cleanup temporary files',
+                    task: () => {
+                        logger.trace('Cleanup temporary files');
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(cleanupTemporaryFilesCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error cleaning up temporary files'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug('Temporary files cleaned up');
+                            });
+                    }
+                }
             ]);
         }
     };
