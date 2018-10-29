@@ -58,12 +58,32 @@ describe('[create-cluster-secrets task]', () => {
         const subTaskList = [
             {
                 title: 'Ensure that working directories exist',
-                commandCount: 2,
+                commandCount: 3,
                 eatError: false
             },
             {
                 title: 'Copy CA certs from master',
+                commandCount: 7,
+                eatError: false
+            },
+            {
+                title: 'Generate credentials for kubernetes access',
                 commandCount: 6,
+                eatError: false
+            },
+            {
+                title: 'Generate kubeconfig file using client credentials',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Generate helm/tiller certificates',
+                commandCount: 12,
+                eatError: false
+            },
+            {
+                title: 'Copy credentials to master',
+                commandCount: 9,
                 eatError: false
             }
         ];
