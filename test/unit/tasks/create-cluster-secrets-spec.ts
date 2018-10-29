@@ -62,21 +62,6 @@ describe('[create-cluster-secrets task]', () => {
                 eatError: false
             },
             {
-                title: 'Copy CA certs from master',
-                commandCount: 7,
-                eatError: false
-            },
-            {
-                title: 'Generate credentials for kubernetes access',
-                commandCount: 6,
-                eatError: false
-            },
-            {
-                title: 'Generate kubeconfig file using client credentials',
-                commandCount: 2,
-                eatError: false
-            },
-            {
                 title: 'Generate helm/tiller certificates',
                 commandCount: 12,
                 eatError: false
@@ -84,6 +69,31 @@ describe('[create-cluster-secrets task]', () => {
             {
                 title: 'Copy credentials to master',
                 commandCount: 9,
+                eatError: false
+            },
+            {
+                title: 'Create server manager secret',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Create helm secrets',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Delete temporary files from master',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Create service accounts on cluster',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Launch server manager initializer',
+                commandCount: 2,
                 eatError: false
             }
         ];
