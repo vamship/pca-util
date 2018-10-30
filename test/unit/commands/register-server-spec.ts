@@ -69,7 +69,7 @@ describe('[register-server command]', () => {
 
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
-        ['create-cluster-secret'].forEach((mockName) => {
+        ['create-cluster-secret', 'init-server-manager'].forEach((mockName) => {
             _taskMocks[mockName] = new ObjectMock().addMock('getTask', () => {
                 return _taskMocks[mockName].__taskDefinition;
             });
@@ -82,6 +82,10 @@ describe('[register-server command]', () => {
         _commandModule.__set__(
             'create_cluster_secrets_1',
             _taskMocks['create-cluster-secret'].instance
+        );
+        _commandModule.__set__(
+            'init_server_manager_1',
+            _taskMocks['init-server-manager'].instance
         );
     });
 

@@ -3,6 +3,7 @@
  */
 import Listr from 'listr';
 import { getTask as _getCreateClusterSecretsTask } from '../tasks/create-cluster-secrets';
+import { getTask as _getInitServerManagerTask } from '../tasks/init-server-manager';
 import { IServerInfo } from '../types';
 
 export const command = 'register-server';
@@ -77,5 +78,8 @@ export const handler = (argv) => {
         cloudEndpoint: argv.cloudEndpoint
     };
 
-    return new Listr([_getCreateClusterSecretsTask(hostInfo)]).run();
+    return new Listr([
+        _getCreateClusterSecretsTask(hostInfo),
+        _getInitServerManagerTask(hostInfo)
+    ]).run();
 };

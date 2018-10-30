@@ -6,9 +6,9 @@ import { ObjectMock, testValues as _testValues } from '@vamship/test-utils';
 import _rewire from 'rewire';
 import { injectSshSubTaskSuite } from '../../utils/test-suite-helper';
 
-const _taskModule = _rewire('../../../src/tasks/create-cluster-secrets');
+const _taskModule = _rewire('../../../src/tasks/init-server-manager');
 
-describe('[create-cluster-secrets task]', () => {
+describe('[init-server-manager task]', () => {
     function _getTaskDefinition(args: object = {}) {
         const host = _testValues.getString('host');
         const port = _testValues.getNumber(100, 22);
@@ -32,7 +32,6 @@ describe('[create-cluster-secrets task]', () => {
 
     let _listrMock;
     let _sshClientMock;
-    // const VM_STARTUP_WAIT_TIME = 180000;
 
     beforeEach(() => {
         _listrMock = new ObjectMock().addPromiseMock('run');
@@ -53,36 +52,15 @@ describe('[create-cluster-secrets task]', () => {
     });
 
     describe('getTask()', () => {
-        const expectedTitle =
-            'Create core secrets required for the server manager agent';
+        const expectedTitle = 'Initialize and launch server management agent';
         const subTaskList = [
             {
-                title: 'Ensure that working directories exist',
-                commandCount: 3,
-                eatError: false
-            },
-            {
-                title: 'Generate helm/tiller certificates',
-                commandCount: 12,
-                eatError: false
-            },
-            {
-                title: 'Copy credentials to master',
-                commandCount: 9,
-                eatError: false
-            },
-            {
-                title: 'Create server manager secret',
+                title: 'Create service accounts on cluster',
                 commandCount: 2,
                 eatError: false
             },
             {
-                title: 'Create helm secrets',
-                commandCount: 2,
-                eatError: false
-            },
-            {
-                title: 'Delete temporary files from master',
+                title: 'Launch server manager initializer',
                 commandCount: 2,
                 eatError: false
             }
