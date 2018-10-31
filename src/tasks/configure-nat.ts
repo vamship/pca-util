@@ -25,7 +25,7 @@ const configureNatCommands = [
         '    post-up echo 1 > /proc/sys/net/ipv4/ip_forward',
         "    post-up   iptables -t nat -A POSTROUTING -s '10.0.0.0/24' -o vmbr0 -j MASQUERADE",
         "    post-down iptables -t nat -D POSTROUTING -s '10.0.0.0/24' -o vmbr0 -j MASQUERADE",
-        '    post-up iptables -t nat -A PREROUTING -i vmbr0 -p tcp--dport 2222 -j DNAT --to 10.0.0.32:22',
+        '    post-up iptables -t nat -A PREROUTING -i vmbr0 -p tcp --dport 2222 -j DNAT --to 10.0.0.32:22',
         '    post-down iptables -t nat -D PREROUTING -i vmbr0 -p tcp --dport 2222 -j DNAT --to 10.0.0.32:22',
         'EOF'
     ].join('\n')
