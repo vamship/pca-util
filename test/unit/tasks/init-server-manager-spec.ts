@@ -60,7 +60,12 @@ describe('[init-server-manager task]', () => {
                 eatError: false
             },
             {
-                title: 'Launch server manager initializer',
+                title: 'Install Tiller (helm) on the cluster',
+                commandCount: 2,
+                eatError: false
+            },
+            {
+                title: 'Install and configure MetalLB on the cluster',
                 commandCount: 2,
                 eatError: false
             }

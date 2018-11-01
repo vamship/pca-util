@@ -57,8 +57,8 @@ const createServiceAccountsCommands = [
     ].join('\n')
 ];
 
-const launchServerManagerInitializerCommands = [
-    '# ---------- Create service accounts and assign permissions to them ----------',
+const installTillerCommands = [
+    '# ---------- Install Tiller (helm) on the cluster ----------',
     [
         "ssh k8s-master <<'END_SCRIPT'",
 
@@ -70,11 +70,11 @@ const launchServerManagerInitializerCommands = [
             'apiVersion: batch/v1',
             'kind: Job',
             'metadata:',
-            '  name: server-initializer',
+            '  name: tiller-installer',
             '  namespace: kube-system',
             '  labels:',
             '    app: "server-manager"',
-            '    module: "server-initializer"',
+            '    module: "tiller-installer"',
             'spec:',
             '  backoffLimit: 1',
             '  ttlSecondsAfterFinished: 3600',
@@ -83,28 +83,13 @@ const launchServerManagerInitializerCommands = [
             '      serviceAccountName: svm-default-account',
             '      restartPolicy: Never',
             '      containers:',
-            '      - name: initializer',
-            '        image: vamship/helm:1.0.0',
+            '      - name: installer',
+            '        image: vamship/helm:1.1.0',
             '        volumeMounts:',
             '          - name: tiller-certificate',
             '            mountPath: /etc/server-manager/tiller-certificate',
             '          - name: helm-ca-certificate',
             '            mountPath: /etc/server-manager/helm-ca-certificate',
-            '        env:',
-            '        - name: KUBERNETES_SERVICE_PORT',
-            '          value: "6443"',
-            '        - name: KUBERNETES_SERVICE_HOST',
-            '          value: "10.0.0.64"',
-            '        - name: SERVER_ID',
-            '          valueFrom:',
-            '            secretKeyRef:',
-            '              name: svm-server-identity',
-            '              key: serverId',
-            '        - name: SERVER_KEY',
-            '          valueFrom:',
-            '            secretKeyRef:',
-            '              name: svm-server-identity',
-            '              key: serverKey',
             '        command: [ "helm" ]',
             [
                 '        args: [',
@@ -124,6 +109,79 @@ const launchServerManagerInitializerCommands = [
             '        - name: tiller-certificate',
             '          secret:',
             '            secretName: svm-tiller-certificate',
+            '        - name: helm-ca-certificate',
+            '          secret:',
+            '            secretName: svm-helm-ca-certificate',
+            'EOF'
+        ].join('\n'),
+        'END_SCRIPT'
+    ].join('\n')
+];
+
+const installMetalLbCommands = [
+    '# ---------- Install MetalLB on the cluster ----------',
+    [
+        "ssh k8s-master <<'END_SCRIPT'",
+
+        '# ---------- Echo commands ----------',
+        'set -x',
+
+        [
+            "kubectl apply -f - <<'EOF'",
+            'apiVersion: batch/v1',
+            'kind: Job',
+            'metadata:',
+            '  name: metallb-installer',
+            '  namespace: kube-system',
+            '  labels:',
+            '    app: "server-manager"',
+            '    module: "metallb-installer"',
+            'spec:',
+            '  ttlSecondsAfterFinished: 3600',
+            '  template:',
+            '    spec:',
+            '      serviceAccountName: svm-default-account',
+            '      restartPolicy: Never',
+            '      containers:',
+            '      - name: installer',
+            '        image: vamship/helm:1.1.0',
+            '        volumeMounts:',
+            '          - name: helm-certificate',
+            '            mountPath: /etc/server-manager/helm-certificate',
+            '          - name: helm-ca-certificate',
+            '            mountPath: /etc/server-manager/helm-ca-certificate',
+            '        command: [ "/bin/sh", "-c" ]',
+            [
+                '        args: ["',
+                [
+                    'set -x',
+                    'echo [START] Create symlinks to helm certs and ca',
+                    'ln -s /etc/server-manager/helm-certificate/tls.crt /root/.helm/cert.pem',
+                    'ln -s /etc/server-manager/helm-certificate/tls.key /root/.helm/key.pem',
+                    'ln -s /etc/server-manager/helm-ca-certificate/tls.crt /root/.helm/ca.pem',
+                    'echo [DONE] Create symlinks to helm certs and ca',
+                    'echo [START] Update helm repo',
+                    'helm repo update',
+                    'echo [DONE] Update helm repo',
+                    [
+                        'if kubectl get namespaces|grep -q metallb-system; then',
+                        'echo [SKIP] Create metallb-system. Already exists.;',
+                        'else',
+                        'echo [START] Create metallb-system namespace;',
+                        'kubectl create namespace metallb-system;',
+                        'echo [DONE] Create metallb-system namespace;',
+                        'fi'
+                    ].join(' '),
+                    'echo [START] Install metallb',
+                    'helm install --name metallb stable/metallb --namespace metallb-system --tls',
+                    'echo [DONE] Install metallb'
+                ].join('&&'),
+                '"]'
+            ].join(' '),
+            '      volumes:',
+            '        - name: helm-certificate',
+            '          secret:',
+            '            secretName: svm-helm-certificate',
             '        - name: helm-ca-certificate',
             '          secret:',
             '            secretName: svm-helm-ca-certificate',
@@ -174,23 +232,45 @@ export const getTask = (hostInfo: IServerInfo): ITaskDefinition => {
                     }
                 },
                 {
-                    title: 'Launch server manager initializer',
+                    title: 'Install Tiller (helm) on the cluster',
                     task: () => {
-                        logger.trace('Launch server manager initializer');
+                        logger.trace('Install Tiller (helm) on the cluster');
                         const sshClient = new SshClient(hostInfo);
                         return sshClient
-                            .run(launchServerManagerInitializerCommands)
+                            .run(installTillerCommands)
                             .then((results) => {
                                 logger.trace(results);
                                 if (results.failureCount > 0) {
                                     const err = new Error(
-                                        'Error launching server manager initializer'
+                                        'Error installing tiller on the cluster'
+                                    );
+                                    logger.error(err);
+                                    throw err;
+                                }
+                                logger.debug('Tiller installed on the cluster');
+                            });
+                    }
+                },
+                {
+                    title: 'Install and configure MetalLB on the cluster',
+                    task: () => {
+                        logger.trace(
+                            'Install and configure MetalLB on the cluster'
+                        );
+                        const sshClient = new SshClient(hostInfo);
+                        return sshClient
+                            .run(installMetalLbCommands)
+                            .then((results) => {
+                                logger.trace(results);
+                                if (results.failureCount > 0) {
+                                    const err = new Error(
+                                        'Error installing/configuring MetalLB on the cluster'
                                     );
                                     logger.error(err);
                                     throw err;
                                 }
                                 logger.debug(
-                                    'Server manager initializer launched'
+                                    'MetalLB installed and configured'
                                 );
                             });
                     }
