@@ -104,21 +104,21 @@ const createHelmSecretsCommand = [
 
         '# ---------- Create helm secret ----------',
         [
-            'kubectl create secret tls svm-helm-certificate --namespace kube-system',
+            'kubectl create secret tls pca-helm-certificate --namespace kube-system',
             `--cert /home/kube/secrets/helm.cert.pem`,
             `--key /home/kube/secrets/helm.key.pem`
         ].join(' '),
 
         '# ---------- Create tiller secret ----------',
         [
-            'kubectl create secret tls svm-tiller-certificate --namespace kube-system',
+            'kubectl create secret tls pca-tiller-certificate --namespace kube-system',
             `--cert /home/kube/secrets/tiller.cert.pem`,
             `--key /home/kube/secrets/tiller.key.pem`
         ].join(' '),
 
         '# ---------- Create helm CA secret ----------',
         [
-            'kubectl create secret tls svm-helm-ca-certificate --namespace kube-system',
+            'kubectl create secret tls pca-helm-ca-certificate --namespace kube-system',
             `--cert /home/kube/secrets/helm-ca.cert.pem`,
             `--key /home/kube/secrets/helm-ca.key.pem`
         ].join(' '),
@@ -153,7 +153,7 @@ function _getCreateServerManagerSecretCommands(serverId, serverKey) {
 
             '# ---------- Create kubernetes secret object ----------',
             [
-                'kubectl create secret generic svm-server-identity --namespace kube-system',
+                'kubectl create secret generic pca-server-identity --namespace kube-system',
                 `--from-literal serverId=${serverId}`,
                 `--from-literal serverKey=${serverKey}`
             ].join(' '),

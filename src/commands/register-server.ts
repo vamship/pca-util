@@ -3,7 +3,7 @@
  */
 import Listr from 'listr';
 import { getTask as _getCreateClusterSecretsTask } from '../tasks/create-cluster-secrets';
-import { getTask as _getInitServerManagerTask } from '../tasks/init-server-manager';
+import { getTask as _getInitServerManagerTask } from '../tasks/init-pca-manager';
 import { IServerInfo } from '../types';
 
 export const command = 'register-server';

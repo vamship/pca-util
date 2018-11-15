@@ -6,9 +6,9 @@ import { ObjectMock, testValues as _testValues } from '@vamship/test-utils';
 import _rewire from 'rewire';
 import { injectSshSubTaskSuite } from '../../utils/test-suite-helper';
 
-const _taskModule = _rewire('../../../src/tasks/init-server-manager');
+const _taskModule = _rewire('../../../src/tasks/init-pca-manager');
 
-describe('[init-server-manager task]', () => {
+describe('[init-pca-manager task]', () => {
     function _getTaskDefinition(args: object = {}) {
         const host = _testValues.getString('host');
         const port = _testValues.getNumber(100, 22);
